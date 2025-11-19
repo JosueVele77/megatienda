@@ -1,29 +1,32 @@
 package model.logic;
 
-import util.RegexPatterns;
-import util.RegexValidator;
+import utils.RegexPatterns;
 
 public class ValidacionesLogic {
 
     public boolean validarCedula(String cedula) {
-        return RegexValidator.validate(cedula, RegexPatterns.CEDULA);
+        if (cedula == null) return false;
+        return cedula.matches(RegexPatterns.CEDULA);
     }
 
     public boolean validarEmail(String email) {
-        return RegexValidator.validate(email, RegexPatterns.EMAIL);
+        if (email == null) return false;
+        return email.matches(RegexPatterns.EMAIL);
     }
 
     public boolean validarNombre(String nombre) {
-        return RegexValidator.validate(nombre, RegexPatterns.NAME);
+        if (nombre == null) return false;
+        return nombre.matches(RegexPatterns.NAME);
     }
 
     public boolean validarUsuario(String usuario) {
         if (usuario == null) return false;
-        // ejemplo: usuario alfanumérico de 3-20 caracteres
+        // Mantenemos tu lógica original o podrías mover este regex a RegexPatterns también
         return usuario.matches("^[A-Za-z0-9_]{3,20}$");
     }
 
     public boolean validarPasswordSegura(String password) {
-        return RegexValidator.validate(password, RegexPatterns.PASSWORD);
+        if (password == null) return false;
+        return password.matches(RegexPatterns.PASSWORD);
     }
 }

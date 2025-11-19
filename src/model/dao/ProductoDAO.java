@@ -9,7 +9,7 @@ public class ProductoDAO extends GenericDAO<Producto> {
 
     public ProductoDAO() {
         super(new GenericFile<>(
-                "productos.txt",
+                "data/productos.txt",
                 new Converter<Producto>() {
                     @Override
                     public Producto fromLine(String line) {

@@ -2,9 +2,8 @@ package model.logic;
 
 import model.dao.HorarioDAO;
 import model.entities.Horario;
-import model.entities.Turno;
-
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class HorarioLogic {
@@ -42,17 +41,24 @@ public class HorarioLogic {
                 break;
             }
         }
-        if (found) writeAllToFile("horarios.txt", list);
+        if (found) writeAllToFile("data/horarios.txt", list);
         return found;
     }
 
-    private <T> void writeAllToFile(String filePath, List<T> list) throws IOException {
-        synchronized (this) {
-            try (PrintWriter pw = new PrintWriter(new FileWriter(filePath, false))) {
-                for (T item : list) {
-                    if (item != null) pw.println(item.toString());
+    private <T> void writeAllToFile(String filePath, List<T> list) {
+        final List<T> dataSnapshot = new ArrayList<>(list);
+
+        new Thread(() -> {
+            synchronized (this) {
+                try (PrintWriter pw = new PrintWriter(new FileWriter(filePath, false))) {
+                    for (T item : dataSnapshot) {
+                        if (item != null) pw.println(item.toString());
+                    }
+                } catch (IOException e) {
+                    System.err.println("Error guardando horarios en background: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
-        }
+        }).start();
     }
 }

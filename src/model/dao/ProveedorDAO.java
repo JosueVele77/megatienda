@@ -9,7 +9,7 @@ public class ProveedorDAO extends GenericDAO<Proveedor> {
 
     public ProveedorDAO() {
         super(new GenericFile<>(
-                "proveedores.txt",
+                "data/proveedores.txt",
                 new Converter<Proveedor>() {
                     @Override
                     public Proveedor fromLine(String line) {

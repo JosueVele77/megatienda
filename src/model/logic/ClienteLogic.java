@@ -48,7 +48,7 @@ public class ClienteLogic {
             }
         }
         if (found) {
-            writeAllToFile("clientes.txt", list);
+            writeAllToFile("data/clientes.txt", list);
         }
         return found;
     }
@@ -60,14 +60,28 @@ public class ClienteLogic {
         return removed;
     }
 
-    private <T> void writeAllToFile(String filePath, List<T> list) throws IOException {
-        synchronized (this) {
-            try (PrintWriter pw = new PrintWriter(new FileWriter(filePath, false))) {
-                for (T item : list) {
-                    // Exigimos que toString() produzca la línea en formato correcto
-                    if (item != null) pw.println(item.toString());
+    private <T> void writeAllToFile(String filePath, List<T> list) {
+        // 1. Creamos una COPIA de la lista para asegurar que los datos no cambien
+        // mientras el hilo intenta escribirlos (evita ConcurrentModificationException).
+        final List<T> dataSnapshot = new ArrayList<>(list);
+
+        // 2. Creamos un nuevo Hilo (Thread)
+        Thread backgroundWriter = new Thread(() -> {
+            // Sincronizamos solo para evitar que dos hilos escriban el MISMO archivo a la vez
+            synchronized (this) {
+                try (PrintWriter pw = new PrintWriter(new FileWriter(filePath, false))) {
+                    for (T item : dataSnapshot) {
+                        if (item != null) pw.println(item.toString());
+                    }
+                    System.out.println("Archivo actualizado correctamente: " + filePath);
+                } catch (IOException e) {
+                    System.err.println("Fallo al guardar en segundo plano: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
-        }
+        });
+
+        // 3. Iniciamos el hilo
+        backgroundWriter.start();
     }
 }

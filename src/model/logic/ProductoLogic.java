@@ -4,6 +4,7 @@ import model.dao.ProductoDAO;
 import model.entities.Producto;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProductoLogic {
@@ -45,7 +46,7 @@ public class ProductoLogic {
                 break;
             }
         }
-        if (updated) writeAllToFile("productos.txt", list);
+        if (updated) writeAllToFile("data/productos.txt", list);
         return updated;
     }
 
@@ -70,13 +71,22 @@ public class ProductoLogic {
         return productoDao.getAll();
     }
 
-    private <T> void writeAllToFile(String filePath, List<T> list) throws IOException {
-        synchronized (this) {
-            try (PrintWriter pw = new PrintWriter(new FileWriter(filePath, false))) {
-                for (T item : list) {
-                    if (item != null) pw.println(item.toString());
+    private <T> void writeAllToFile(String filePath, List<T> list) {
+        // 1. Snapshot para evitar ConcurrentModificationException
+        final List<T> dataSnapshot = new ArrayList<>(list);
+
+        // 2. Hilo independiente
+        new Thread(() -> {
+            synchronized (this) {
+                try (PrintWriter pw = new PrintWriter(new FileWriter(filePath, false))) {
+                    for (T item : dataSnapshot) {
+                        if (item != null) pw.println(item.toString());
+                    }
+                } catch (IOException e) {
+                    System.err.println("Error guardando productos en background: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
-        }
+        }).start();
     }
 }

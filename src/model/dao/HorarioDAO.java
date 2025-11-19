@@ -10,7 +10,7 @@ public class HorarioDAO extends GenericDAO<Horario> {
 
     public HorarioDAO() {
         super(new GenericFile<>(
-                "horarios.txt",
+                "data/horarios.txt",
                 new Converter<Horario>() {
                     @Override
                     public Horario fromLine(String line) {

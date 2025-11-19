@@ -9,7 +9,7 @@ public class AdministradorDAO extends GenericDAO<Administrador> {
 
     public AdministradorDAO() {
         super(new GenericFile<>(
-                "administradores.txt",
+                "data/administradores.txt",
                 new Converter<Administrador>() {
                     @Override
                     public Administrador fromLine(String line) {

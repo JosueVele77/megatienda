@@ -9,7 +9,7 @@ public class BodegueroDAO extends GenericDAO<Bodeguero> {
 
     public BodegueroDAO() {
         super(new GenericFile<>(
-                "bodegueros.txt",
+                "data/bodegueros.txt",
                 new Converter<Bodeguero>() {
                     @Override
                     public Bodeguero fromLine(String line) {

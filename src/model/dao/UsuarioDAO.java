@@ -7,7 +7,7 @@ import model.entities.*;
 
 public class UsuarioDAO extends GenericDAO<Usuario> {
 
-    private static final String FILE = "usuarios.txt";
+    private static final String FILE = "data/usuarios.txt";
 
     public UsuarioDAO() {
         super(new GenericFile<>(
