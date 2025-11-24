@@ -14,12 +14,16 @@ public class VendedorDAO extends GenericDAO<Vendedor> {
                     @Override
                     public Vendedor fromLine(String line) {
                         String[] p = line.split(";");
-                        return new Vendedor(p[0], p[1], p[2],p[3]);
+                        if (p.length < 5) return null;
+
+                        Vendedor v = new Vendedor(p[0], p[1], p[2], p[3]);
+                        v.setPrimerIngreso(Boolean.parseBoolean(p[4]));
+                        return v;
                     }
 
                     @Override
                     public String toLine(Vendedor v) {
-                        return v.getUsuario() + ";" + v.getPassword() + ";" + v.getNombre();
+                        return v.getUsuario() + ";" + v.getPassword() + ";" + v.getNombre() + ";" + v.getCedula() + ";" + v.isPrimerIngreso();
                     }
 
                     @Override

@@ -2,6 +2,7 @@ package controller;
 
 import model.entities.Empleado; // <--- IMPORTANTE: Agregar este import
 import model.entities.Usuario;
+import view.ActualizarClienteView;
 import view.MenuAdminView;
 import view.GestionEmpleadosView;
 import view.LoginView;
@@ -52,7 +53,8 @@ public class MenuAdministradorController implements ActionListener {
             new GestionEmpleadosController(empleadosView).iniciar();
         }
         else if (source == view.btnActualizarCliente) {
-            JOptionPane.showMessageDialog(view, "Módulo Actualizar Cliente - Próximamente");
+            ActualizarClienteView actView = new ActualizarClienteView();
+            new ActualizarClienteController(actView).iniciar();
         }
         else if (source == view.btnGestionHorarios) {
             JOptionPane.showMessageDialog(view, "Módulo Horarios - Próximamente");
@@ -63,6 +65,7 @@ public class MenuAdministradorController implements ActionListener {
         else if (source == view.btnSalir) {
             view.dispose();
             new LoginView().setVisible(true);
-        }
+        }// En MenuAdministradorController.java, dentro del actionPerformed:
+
     }
 }

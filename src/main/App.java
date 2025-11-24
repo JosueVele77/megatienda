@@ -1,46 +1,89 @@
 package main;
 
 import com.formdev.flatlaf.FlatLightLaf;
-import model.logic.EmpleadoLogic;
-import model.dao.AdministradorDAO;
 import view.LoginView;
 import javax.swing.*;
 import java.io.File;
+import java.io.IOException;
+
+// Importaciones necesarias para el bypass
+import model.dao.AdministradorDAO;
+import model.entities.Administrador;
+import model.logic.PasswordLogic;
 
 public class App {
     public static void main(String[] args) {
-        // Estilo
+        // 1. Cargar Estilo
         try {
-            UIManager.setLookAndFeel(new FlatLightLaf());
+            UIManager.setLookAndFeel(new com.formdev.flatlaf.themes.FlatMacDarkLaf());
             UIManager.put("Button.arc", 15);
             UIManager.put("TextComponent.arc", 15);
         } catch (Exception e) {
             System.err.println("Error al cargar FlatLaf");
         }
 
-        // --- BOOTSTRAP: CREAR ADMIN POR DEFECTO SI NO EXISTE ---
-        crearAdminPorDefecto();
+        // 2. VERIFICACIÓN DE ARCHIVOS
+        verificarArchivosDeDatos();
 
-        // Iniciar ventana
+        // 3. Iniciar ventana
         SwingUtilities.invokeLater(() -> {
             new LoginView().setVisible(true);
         });
     }
 
-    private static void crearAdminPorDefecto() {
+    private static void verificarArchivosDeDatos() {
         try {
-            // Verificamos si el archivo existe o está vacío (lógica simple)
-            File f = new File("data/administradores.txt");
-            if (!f.exists() || f.length() == 0) {
-                System.out.println("Primer inicio detectado. Creando admin por defecto...");
-                // Usamos EmpleadoLogic para que haga el hash correctamente
-                EmpleadoLogic logic = new EmpleadoLogic();
-                // admin@gmail.com | admin1234 | Nombre Default | CI ficticia
-                logic.registrarAdministrador("admin@gmail.com", "admin1234", "Super Admin", "1700000000");
-                System.out.println("Admin creado: admin@gmail.com / admin1234");
+            // A. Crear carpeta data si no existe
+            File carpeta = new File("data");
+            if (!carpeta.exists()) {
+                carpeta.mkdir();
             }
-        } catch (Exception e) {
+
+            // B. Lista de archivos requeridos por el sistema
+            String[] archivos = {
+                    "data/administradores.txt",
+                    "data/vendedores.txt",
+                    "data/bodegueros.txt",
+                    "data/clientes.txt",
+                    "data/productos.txt",
+                    "data/proveedores.txt",
+                    "data/ventas.txt",
+                    "data/detalles_venta.txt",
+                    "data/horarios.txt"
+            };
+
+            // C. Crear cada archivo si no existe
+            for (String ruta : archivos) {
+                File f = new File(ruta);
+                if (!f.exists()) {
+                    f.createNewFile();
+                }
+            }
+
+            // D. CORRECCIÓN CLAVE: Crear Admin por defecto saltando validaciones
+            File fAdmin = new File("data/administradores.txt");
+            if (fAdmin.length() == 0) {
+                System.out.println("Creando admin por defecto...");
+
+                // Usamos DAO directo para evitar que ValidacionesLogic bloquee la cédula o password
+                AdministradorDAO adminDao = new AdministradorDAO();
+                PasswordLogic passLogic = new PasswordLogic();
+
+                Administrador admin = new Administrador(
+                        "admin@gmail.com",
+                        passLogic.hash("admin1234"), // Hasheamos la clave manualmente
+                        "Super Admin",
+                        "1700000000"
+                );
+
+                adminDao.add(admin); // Guardamos a la fuerza
+                System.out.println("Admin por defecto creado con éxito.");
+            }
+
+        } catch (IOException e) {
             e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error crítico creando archivos de datos: " + e.getMessage());
         }
     }
+
 }

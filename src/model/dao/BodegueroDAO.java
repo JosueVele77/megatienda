@@ -14,12 +14,14 @@ public class BodegueroDAO extends GenericDAO<Bodeguero> {
                     @Override
                     public Bodeguero fromLine(String line) {
                         String[] p = line.split(";");
-                        return new Bodeguero(p[0], p[1], p[2],p[3]);
+                        if (p.length < 4) return null; // Validación
+                        return new Bodeguero(p[0], p[1], p[2], p[3]);
                     }
 
                     @Override
                     public String toLine(Bodeguero b) {
-                        return b.getUsuario() + ";" + b.getPassword() + ";" + b.getNombre();
+                        // AGREGADO: b.getCedula() al final
+                        return b.getUsuario() + ";" + b.getPassword() + ";" + b.getNombre() + ";" + b.getCedula();
                     }
 
                     @Override
