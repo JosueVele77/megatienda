@@ -1,8 +1,10 @@
 package controller;
 
+import model.entities.Empleado; // <--- IMPORTANTE: Agregar este import
 import model.entities.Usuario;
-// import view.MenuAdminView;
-// import view.RegistroEmpleadoView;
+import view.MenuAdminView;
+import view.GestionEmpleadosView;
+import view.LoginView;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -10,45 +12,57 @@ import java.awt.event.ActionListener;
 
 public class MenuAdministradorController implements ActionListener {
 
-    // private final MenuAdminView view;
-    private final Usuario administrador;
-    private final JFrame viewFrame;
+    private final MenuAdminView view;
+    private final Usuario admin;
 
-    public MenuAdministradorController(JFrame viewFrame, Usuario administrador) {
-        this.viewFrame = viewFrame;
-        this.administrador = administrador;
+    public MenuAdministradorController(MenuAdminView view, Usuario admin) {
+        this.view = view;
+        this.admin = admin;
+
+        // --- CORRECCIÓN DEL ERROR ---
+        // Verificamos si es un Empleado para poder usar getNombre()
+        String nombreMostrar = admin.getUsuario(); // Valor por defecto (el correo/user)
+
+        if (admin instanceof Empleado) {
+            // Hacemos el CASTING ((Empleado) admin) para acceder a los métodos de Empleado
+            nombreMostrar = ((Empleado) admin).getNombre();
+        }
+
+        view.setUsuarioInfo("Admin: " + nombreMostrar);
+        // -----------------------------
+
+        // Listeners
+        this.view.btnGestionEmpleados.addActionListener(this);
+        this.view.btnActualizarCliente.addActionListener(this);
+        this.view.btnGestionHorarios.addActionListener(this);
+        this.view.btnResetPassword.addActionListener(this);
+        this.view.btnSalir.addActionListener(this);
     }
 
     public void iniciar() {
-        viewFrame.setVisible(true);
-        viewFrame.setTitle("Panel Administrador - " + administrador.getUsuario());
+        view.setVisible(true);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        String comando = e.getActionCommand();
+        Object source = e.getSource();
 
-        switch (comando) {
-            case "GESTIONAR_EMPLEADOS":
-                abrirRegistroEmpleado();
-                break;
-            case "GESTIONAR_PRODUCTOS":
-                // abrirGestionProductos();
-                System.out.println("Abrir gestión productos");
-                break;
-            case "SALIR":
-                viewFrame.dispose();
-                // new LoginController(...).iniciar();
-                break;
-            default:
-                System.out.println("Comando no reconocido: " + comando);
+        if (source == view.btnGestionEmpleados) {
+            GestionEmpleadosView empleadosView = new GestionEmpleadosView();
+            new GestionEmpleadosController(empleadosView).iniciar();
         }
-    }
-
-    private void abrirRegistroEmpleado() {
-        // Ejemplo de cómo conectarías con el siguiente controlador
-        // RegistroEmpleadoView regView = new RegistroEmpleadoView();
-        // new RegistroEmpleadoController(regView).iniciar();
-        System.out.println("Abriendo Registro de Empleados...");
+        else if (source == view.btnActualizarCliente) {
+            JOptionPane.showMessageDialog(view, "Módulo Actualizar Cliente - Próximamente");
+        }
+        else if (source == view.btnGestionHorarios) {
+            JOptionPane.showMessageDialog(view, "Módulo Horarios - Próximamente");
+        }
+        else if (source == view.btnResetPassword) {
+            JOptionPane.showMessageDialog(view, "Use el módulo 'Gestión de Empleados' para resetear.");
+        }
+        else if (source == view.btnSalir) {
+            view.dispose();
+            new LoginView().setVisible(true);
+        }
     }
 }

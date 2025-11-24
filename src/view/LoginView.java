@@ -12,7 +12,6 @@ public class LoginView extends JFrame {
     private JTextField txtUsuario;
     private JPasswordField txtPassword;
     private JButton btnIngresar;
-    private JButton btnRegistrar; // Nuevo botón
 
     public LoginView() {
         initComponents();
@@ -20,9 +19,8 @@ public class LoginView extends JFrame {
     }
 
     private void initComponents() {
-        // 1. Ventana más grande para que quepa el logo
-        setTitle("Acceso al Sistema - Megatienda");
-        setSize(450, 650);
+        setTitle("Megatienda - Acceso Interno");
+        setSize(400, 550);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
@@ -31,33 +29,21 @@ public class LoginView extends JFrame {
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
 
-        // --- 1. LOGO ---
+        // --- LOGO ---
         JLabel lblLogo = new JLabel();
         lblLogo.setAlignmentX(Component.CENTER_ALIGNMENT);
-        // Cargar imagen
         try {
-            URL imgUrl = getClass().getResource("/main/resources/logo.png");
+            URL imgUrl = getClass().getResource("/images/logo.png"); // Asegúrate de tener la imagen ahí
             if (imgUrl != null) {
                 ImageIcon icon = new ImageIcon(imgUrl);
-                // Escalar imagen a 150x150 para que se vea bien
-                Image img = icon.getImage().getScaledInstance(250, 200, Image.SCALE_SMOOTH);
+                Image img = icon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
                 lblLogo.setIcon(new ImageIcon(img));
-            } else {
-                lblLogo.setText("[LOGO AQUÍ]"); // Por si no encuentra la imagen
             }
-        } catch (Exception e) {
-            System.err.println("No se pudo cargar el logo");
-        }
+        } catch (Exception e) { /* Ignorar */ }
 
-        // --- TITULOS ---
         JLabel lblTitulo = new JLabel("Bienvenido");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 28));
         lblTitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        JLabel lblSubtitulo = new JLabel("Inicie sesión para continuar");
-        lblSubtitulo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        lblSubtitulo.setForeground(Color.GRAY);
-        lblSubtitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
 
         // --- INPUTS ---
         JLabel lblUser = new JLabel("Usuario");
@@ -66,9 +52,8 @@ public class LoginView extends JFrame {
         txtUsuario = new JTextField();
         txtUsuario.setPreferredSize(new Dimension(300, 40));
         txtUsuario.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        txtUsuario.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "Ingrese su usuario");
+        txtUsuario.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "admin@gmail.com");
         txtUsuario.putClientProperty(FlatClientProperties.COMPONENT_ROUND_RECT, true);
-        txtUsuario.putClientProperty(FlatClientProperties.TEXT_FIELD_SHOW_CLEAR_BUTTON, true);
 
         JLabel lblPass = new JLabel("Contraseña");
         lblPass.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -80,39 +65,24 @@ public class LoginView extends JFrame {
         txtPassword.putClientProperty(FlatClientProperties.COMPONENT_ROUND_RECT, true);
         txtPassword.putClientProperty(FlatClientProperties.STYLE, "showRevealButton:true");
 
-        // --- BOTONES ---
+        // --- BOTÓN INGRESAR ---
         btnIngresar = new JButton("INGRESAR");
         btnIngresar.setFont(new Font("Segoe UI", Font.BOLD, 14));
         btnIngresar.setPreferredSize(new Dimension(300, 45));
         btnIngresar.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
         btnIngresar.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnIngresar.putClientProperty(FlatClientProperties.STYLE,
-                "background: #007bff; foreground: #ffffff; arc: 10; borderWidth: 0; focusWidth: 0");
+                "background: #007bff; foreground: #ffffff; arc: 10; borderWidth: 0");
         btnIngresar.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Separador visual
-        JSeparator separator = new JSeparator();
-        separator.setMaximumSize(new Dimension(300, 10));
-
-        JLabel lblNoCuenta = new JLabel("¿No tienes una cuenta?");
-        lblNoCuenta.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-        btnRegistrar = new JButton("Crear cuenta nueva");
-        btnRegistrar.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-        btnRegistrar.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnRegistrar.setAlignmentX(Component.CENTER_ALIGNMENT);
-        // Estilo de botón "outline" (solo borde) para diferenciarlo del principal
-        btnRegistrar.putClientProperty(FlatClientProperties.STYLE,
-                "background: null; foreground: #007bff; borderWidth: 0; focusWidth: 0");
-
-        // --- AGREGAR AL PANEL ---
+        // --- AGREGAR ---
+        mainPanel.add(Box.createVerticalGlue());
         mainPanel.add(lblLogo);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
         mainPanel.add(lblTitulo);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 5)));
-        mainPanel.add(lblSubtitulo);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 30)));
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
 
+        // Contenedor inputs
         JPanel formContainer = new JPanel();
         formContainer.setLayout(new BoxLayout(formContainer, BoxLayout.Y_AXIS));
         formContainer.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -126,22 +96,17 @@ public class LoginView extends JFrame {
         formContainer.add(txtPassword);
 
         mainPanel.add(formContainer);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 30)));
+        mainPanel.add(Box.createRigidArea(new Dimension(0, 40)));
         mainPanel.add(btnIngresar);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 20)));
-        mainPanel.add(separator);
-        mainPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        mainPanel.add(lblNoCuenta);
-        mainPanel.add(btnRegistrar);
+        mainPanel.add(Box.createVerticalGlue());
 
         add(mainPanel);
     }
 
     private void configurarEventos() {
-        // Actualizamos el controlador para soportar el botón de registro
-        LoginController controller = new LoginController(this, txtUsuario, txtPassword, btnIngresar, btnRegistrar);
+        // Controlador simplificado (ya no recibe el botón registrar)
+        LoginController controller = new LoginController(this, txtUsuario, txtPassword, btnIngresar);
         btnIngresar.addActionListener(controller);
         txtPassword.addActionListener(controller);
-        btnRegistrar.addActionListener(controller);
     }
 }
