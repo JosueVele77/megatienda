@@ -29,17 +29,31 @@ public class LoginView extends JFrame {
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
 
-        // --- LOGO ---
+        // --- LOGO CON DIAGNÓSTICO ---
         JLabel lblLogo = new JLabel();
         lblLogo.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // --- AQUÍ ESTÁ EL CÓDIGO MEJORADO ---
         try {
-            URL imgUrl = getClass().getResource("/images/logo.png"); // Asegúrate de tener la imagen ahí
+            // Busca en la raíz del classpath (dentro de resources)
+            String ruta = "/logo.png";
+            URL imgUrl = getClass().getResource(ruta);
+
             if (imgUrl != null) {
                 ImageIcon icon = new ImageIcon(imgUrl);
                 Image img = icon.getImage().getScaledInstance(150, 150, Image.SCALE_SMOOTH);
                 lblLogo.setIcon(new ImageIcon(img));
+            } else {
+                lblLogo.setText("<html><center>LOGO NO<br>ENCONTRADO</center></html>");
+                lblLogo.setForeground(Color.RED);
+                lblLogo.setBorder(BorderFactory.createLineBorder(Color.RED));
+                lblLogo.setPreferredSize(new Dimension(150, 150));
             }
-        } catch (Exception e) { /* Ignorar */ }
+        } catch (Exception e) {
+            System.err.println("Excepción cargando imagen: " + e.getMessage());
+            e.printStackTrace();
+        }
+        // -------------------------------------
 
         JLabel lblTitulo = new JLabel("Bienvenido");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 28));
@@ -104,7 +118,6 @@ public class LoginView extends JFrame {
     }
 
     private void configurarEventos() {
-        // Controlador simplificado (ya no recibe el botón registrar)
         LoginController controller = new LoginController(this, txtUsuario, txtPassword, btnIngresar);
         btnIngresar.addActionListener(controller);
         txtPassword.addActionListener(controller);

@@ -28,11 +28,15 @@ public class MenuAdminView extends JFrame {
 
         // --- HEADER ---
         JPanel headerPanel = new JPanel(new BorderLayout());
+        // Le damos un margen inferior para que no quede pegado al título
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+
         JLabel lblTitulo = new JLabel("Megatienda Admin");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 24));
 
-        lblUsuarioInfo = new JLabel("Usuario: ...");
-        lblUsuarioInfo.setForeground(Color.GRAY);
+        // --- CAMBIO AQUÍ: Etiqueta con estilo ---
+        lblUsuarioInfo = new JLabel("Admin: ...");
+        estilizarBadge(lblUsuarioInfo); // <--- Aplicamos el estilo píldora
 
         headerPanel.add(lblTitulo, BorderLayout.WEST);
         headerPanel.add(lblUsuarioInfo, BorderLayout.EAST);
@@ -67,10 +71,9 @@ public class MenuAdminView extends JFrame {
         JButton btn = new JButton("<html><center><span style='font-size:16px'><b>" + titulo + "</b></span><br/><span style='font-size:10px'>" + desc + "</span></center></html>");
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.setBackground(colorBase);
-        btn.setForeground(Color.WHITE); // Texto blanco si el fondo es oscuro (ajustar según flatlaf)
+        btn.setForeground(Color.WHITE);
 
-        // Si usas un tema claro de FlatLaf, el texto blanco sobre amarillo (horarios) no se ve bien.
-        // Ajuste rapido para el amarillo:
+        // Ajuste para color amarillo
         if (colorBase.equals(new Color(255, 193, 7))) {
             btn.setForeground(Color.DARK_GRAY);
         }
@@ -81,5 +84,19 @@ public class MenuAdminView extends JFrame {
 
     public void setUsuarioInfo(String info) {
         lblUsuarioInfo.setText(info);
+    }
+
+    // --- MÉTODO DE ESTILO PARA LA ETIQUETA ---
+    private void estilizarBadge(JLabel label) {
+        label.setOpaque(true);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        // Estilo tipo "píldora" con borde azul y fondo oscuro
+        label.putClientProperty(FlatClientProperties.STYLE, "" +
+                "arc: 999;" +
+                "background: #262a2e;" +
+                "foreground: #62c4ff;" +
+                "border: 1,1,1,1, #4a90e2;" +
+                "margin: 6,15,6,15;"
+        );
     }
 }

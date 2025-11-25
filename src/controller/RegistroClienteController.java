@@ -12,87 +12,90 @@ import java.io.IOException;
 
 public class RegistroClienteController implements ActionListener {
 
-    private RegistroClienteView view; // Tipo específico para acceder a marcarCampo
-    private JTextField txtCedula, txtNombre, txtCorreo, txtTelefono;
-    private ClienteLogic clienteLogic;
-    private ValidacionesLogic validador;
+    private final RegistroClienteView view;
+    private final ClienteLogic clienteLogic;
+    private final ValidacionesLogic validador;
 
-    public RegistroClienteController(RegistroClienteView view, JTextField txtCedula, JTextField txtNombre, JTextField txtCorreo, JTextField txtTelefono) {
+    public RegistroClienteController(RegistroClienteView view) {
         this.view = view;
-        this.txtCedula = txtCedula;
-        this.txtNombre = txtNombre;
-        this.txtCorreo = txtCorreo;
-        this.txtTelefono = txtTelefono; // En la vista es txtDireccion, pero funciona como teléfono
         this.clienteLogic = new ClienteLogic();
         this.validador = new ValidacionesLogic();
     }
 
+    public void iniciarListeners() {
+        view.btnGuardar.addActionListener(this);
+        view.btnCancelar.addActionListener(e -> view.dispose());
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
-        String cedula = txtCedula.getText().trim();
-        String nombre = txtNombre.getText().trim();
-        String correo = txtCorreo.getText().trim();
-        String telefono = txtTelefono.getText().trim();
+        if (e.getSource() == view.btnGuardar) {
+            guardarCliente();
+        }
+    }
 
-        boolean todoValido = true;
-        StringBuilder msgError = new StringBuilder();
+    private void guardarCliente() {
+        // Obtener datos
+        String nombre = view.txtNombre.getText().trim();
+        String cedula = view.txtCedula.getText().trim();
+        String correo = view.txtCorreo.getText().trim();
+        String telefono = view.txtTelefono.getText().trim();
 
-        // 1. Validar Cédula (Ecuador)
-        if (validador.validarCedula(cedula)) { //
-            view.marcarCampo(txtCedula, true); // Verde
+        boolean hayError = false;
+
+        // --- VALIDACIONES VISUALES ---
+
+        // 1. Cédula
+        if (!validador.validarCedula(cedula)) {
+            view.marcarCampoError(view.txtCedula, true);
+            hayError = true;
         } else {
-            view.marcarCampo(txtCedula, false); // Rojo
-            msgError.append("- La cédula es incorrecta o no es ecuatoriana.\n");
-            todoValido = false;
+            view.marcarCampoError(view.txtCedula, false);
         }
 
-        // 2. Validar Teléfono (Ecuador 09...)
-        if (validador.validarTelefono(telefono)) {
-            view.marcarCampo(txtTelefono, true);
+        // 2. Nombre
+        if (!validador.validarNombre(nombre)) {
+            view.marcarCampoError(view.txtNombre, true);
+            hayError = true;
         } else {
-            view.marcarCampo(txtTelefono, false);
-            msgError.append("- El teléfono debe empezar con 09 y tener 10 dígitos.\n");
-            todoValido = false;
+            view.marcarCampoError(view.txtNombre, false);
         }
 
-        // 3. Validar Nombre
-        if (validador.validarNombre(nombre)) {
-            view.marcarCampo(txtNombre, true);
+        // 3. Correo
+        if (!validador.validarEmail(correo)) {
+            view.marcarCampoError(view.txtCorreo, true);
+            hayError = true;
         } else {
-            view.marcarCampo(txtNombre, false);
-            msgError.append("- El nombre contiene caracteres inválidos.\n");
-            todoValido = false;
+            view.marcarCampoError(view.txtCorreo, false);
         }
 
-        // 4. Validar Correo
-        if (validador.validarEmail(correo)) {
-            view.marcarCampo(txtCorreo, true);
+        // 4. Teléfono (Regex simple de 10 dígitos empezando con 09)
+        if (!telefono.matches("^09\\d{8}$")) {
+            view.marcarCampoError(view.txtTelefono, true);
+            hayError = true;
         } else {
-            view.marcarCampo(txtCorreo, false);
-            msgError.append("- El correo no tiene un formato válido.\n");
-            todoValido = false;
+            view.marcarCampoError(view.txtTelefono, false);
         }
 
-        // --- RESULTADO FINAL ---
-        if (!todoValido) {
-            // Mostrar ventana emergente con los errores
-            JOptionPane.showMessageDialog(view,
-                    "Se encontraron errores en el formulario:\n" + msgError.toString(),
-                    "Error de Validación",
-                    JOptionPane.ERROR_MESSAGE);
-        } else {
-            try {
-                // Si todo es verde, procedemos a guardar
-                // Nota: Guardamos el teléfono en el campo dirección o creamos un campo nuevo en Cliente si lo prefieres
-                Cliente nuevoCliente = new Cliente(cedula, nombre, correo, telefono);
-                clienteLogic.registrarCliente(nuevoCliente);
+        // Si hay error, detenemos
+        if (hayError) {
+            JOptionPane.showMessageDialog(view, "Por favor corrija los campos marcados en rojo.", "Error de Validación", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
-                JOptionPane.showMessageDialog(view, "¡Registro exitoso! Bienvenido " + nombre);
-                view.dispose();
+        // --- GUARDAR ---
+        try {
+            // Concatenamos dirección y teléfono si tu modelo Cliente aún no tiene campo separado
+            // O usamos el campo dirección para guardar el teléfono temporalmente
+            Cliente c = new Cliente(cedula, nombre, correo, telefono);
 
-            } catch (IllegalArgumentException | IOException ex) {
-                JOptionPane.showMessageDialog(view, "Error al guardar: " + ex.getMessage(), "Error del Sistema", JOptionPane.ERROR_MESSAGE);
-            }
+            clienteLogic.registrarCliente(c);
+
+            JOptionPane.showMessageDialog(view, "Cliente registrado exitosamente.");
+            view.dispose();
+
+        } catch (IllegalArgumentException | IOException ex) {
+            JOptionPane.showMessageDialog(view, "Error al guardar: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

@@ -14,8 +14,15 @@ public class BodegueroDAO extends GenericDAO<Bodeguero> {
                     @Override
                     public Bodeguero fromLine(String line) {
                         String[] p = line.split(";");
-                        if (p.length < 4) return null; // Validación
-                        return new Bodeguero(p[0], p[1], p[2], p[3]);
+                        if (p.length < 5) return null;
+
+                        // Desplazamos los índices en 1 porque p[0] es el ROL
+                        Bodeguero b = new Bodeguero(p[1], p[2], p[3], p[4]);
+
+                        if (p.length > 5) {
+                            b.setPrimerIngreso(Boolean.parseBoolean(p[5]));
+                        }
+                        return b;
                     }
 
                     @Override

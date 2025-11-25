@@ -11,6 +11,9 @@ public class MenuVendedorView extends JFrame {
     public JPanel pnlContent;
     public JButton btnNuevaVenta, btnRegistrarCliente, btnSalir;
 
+    // --- ETIQUETA DE USUARIO (NUEVO) ---
+    public JLabel lblInfoVendedor; // <--- Pública para que el controller la modifique
+
     // --- Panel Venta ---
     public JTextField txtBusquedaCliente, txtBusquedaProducto;
     public JButton btnBuscarCliente, btnAgregarProducto;
@@ -22,7 +25,7 @@ public class MenuVendedorView extends JFrame {
     // --- Panel Totales ---
     public JLabel lblSubtotal, lblIva, lblTotal;
     public JComboBox<String> cmbFormaPago;
-    public JLabel lblInfoPago; // Para mostrar cuotas
+    public JLabel lblInfoPago;
     public JButton btnProcesarPago;
 
     // Colores
@@ -73,9 +76,28 @@ public class MenuVendedorView extends JFrame {
         pnlContent = new JPanel(new BorderLayout(15, 15));
         pnlContent.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        // Panel Superior: Búsquedas
-        JPanel pnlTop = new JPanel(new GridLayout(1, 2, 20, 0));
-        pnlTop.setPreferredSize(new Dimension(0, 140));
+        // ============================================================
+        // SECCIÓN SUPERIOR MODIFICADA (Header + Búsquedas)
+        // ============================================================
+
+        // A. Header con Título y Etiqueta de Usuario
+        JPanel pnlHeader = new JPanel(new BorderLayout());
+        pnlHeader.setOpaque(false);
+
+        JLabel lblTituloSeccion = new JLabel("Punto de Venta");
+        lblTituloSeccion.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        lblTituloSeccion.setForeground(Color.GRAY);
+
+        // Creación y Estilo de la etiqueta
+        lblInfoVendedor = new JLabel("Vendedor: ...");
+        estilizarBadge(lblInfoVendedor); // <--- APLICAMOS EL ESTILO AQUÍ
+
+        pnlHeader.add(lblTituloSeccion, BorderLayout.WEST);
+        pnlHeader.add(lblInfoVendedor, BorderLayout.EAST);
+
+        // B. Panel de Búsquedas (El que ya tenías)
+        JPanel pnlBusquedas = new JPanel(new GridLayout(1, 2, 20, 0));
+        pnlBusquedas.setPreferredSize(new Dimension(0, 100)); // Ajustamos altura
 
         // -> Caja Cliente
         JPanel pnlCliente = crearPanelSeccion("Datos del Cliente");
@@ -118,8 +140,16 @@ public class MenuVendedorView extends JFrame {
         pnlProd.add(Box.createRigidArea(new Dimension(0, 10)));
         pnlProd.add(btnAgregarProducto);
 
-        pnlTop.add(pnlCliente);
-        pnlTop.add(pnlProd);
+        pnlBusquedas.add(pnlCliente);
+        pnlBusquedas.add(pnlProd);
+
+        // C. Contenedor Norte Global (Une Header + Búsquedas)
+        JPanel pnlNorthGlobal = new JPanel(new BorderLayout(0, 15)); // 15px de espacio vertical
+        pnlNorthGlobal.setOpaque(false);
+        pnlNorthGlobal.add(pnlHeader, BorderLayout.NORTH);
+        pnlNorthGlobal.add(pnlBusquedas, BorderLayout.CENTER);
+
+        // ============================================================
 
         // Panel Central: Tabla
         modeloTabla = new DefaultTableModel();
@@ -148,14 +178,12 @@ public class MenuVendedorView extends JFrame {
         lblResumen.setFont(new Font("Segoe UI", Font.BOLD, 18));
         lblResumen.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        // Etiquetas de Totales
         lblSubtotal = crearLabelTotal("Subtotal: $0.00");
         lblIva = crearLabelTotal("IVA (15%): $0.00");
         lblTotal = crearLabelTotal("TOTAL: $0.00");
         lblTotal.setFont(new Font("Segoe UI", Font.BOLD, 22));
         lblTotal.setForeground(COLOR_SUCCESS);
 
-        // Selector Pago
         cmbFormaPago = new JComboBox<>(new String[]{"EFECTIVO", "CORRIENTE", "DIFERIDO 3 MESES", "DIFERIDO 6 MESES"});
         cmbFormaPago.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
 
@@ -189,7 +217,7 @@ public class MenuVendedorView extends JFrame {
         pnlPago.add(btnProcesarPago);
 
         // Ensamblaje final
-        pnlContent.add(pnlTop, BorderLayout.NORTH);
+        pnlContent.add(pnlNorthGlobal, BorderLayout.NORTH); // <--- Agregamos el contenedor global
         pnlContent.add(scrollTabla, BorderLayout.CENTER);
         pnlContent.add(pnlPago, BorderLayout.EAST);
 
@@ -200,6 +228,20 @@ public class MenuVendedorView extends JFrame {
     }
 
     // --- Helpers ---
+
+    // MÉTODO DE ESTILO (Copiado del Admin)
+    private void estilizarBadge(JLabel label) {
+        label.setOpaque(true);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        label.putClientProperty(FlatClientProperties.STYLE, "" +
+                "arc: 999;" +
+                "background: #262a2e;" +
+                "foreground: #62c4ff;" +
+                "border: 1,1,1,1, #4a90e2;" +
+                "margin: 6,15,6,15;"
+        );
+    }
+
     private JButton crearBotonMenu(String texto, String icono) {
         JButton btn = new JButton(texto);
         btn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 45));
@@ -232,7 +274,6 @@ public class MenuVendedorView extends JFrame {
         return l;
     }
 
-    // Simulación de Pasarela de Pago
     public boolean mostrarPasarelaPago(double total, String detallePago) {
         JDialog dialog = new JDialog(this, "Pasarela de Pago", true);
         dialog.setSize(400, 300);
@@ -253,7 +294,6 @@ public class MenuVendedorView extends JFrame {
         lblDetalle.setForeground(Color.GRAY);
         lblDetalle.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Simulación de proceso
         JProgressBar progress = new JProgressBar();
         progress.setIndeterminate(true);
         progress.setVisible(false);
@@ -263,16 +303,12 @@ public class MenuVendedorView extends JFrame {
         btnConfirmar.setForeground(Color.WHITE);
         btnConfirmar.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        // Resultado (final array hack para acceder desde listener)
         final boolean[] resultado = {false};
 
         btnConfirmar.addActionListener(e -> {
             btnConfirmar.setEnabled(false);
             progress.setVisible(true);
-
-            // Simular delay de red
             Timer t = new Timer(2000, evt -> {
-                // Simular probabilidad de fallo (10%)
                 if (Math.random() > 0.9) {
                     JOptionPane.showMessageDialog(dialog, "Transacción rechazada por el banco.", "Error", JOptionPane.ERROR_MESSAGE);
                     resultado[0] = false;
@@ -302,7 +338,6 @@ public class MenuVendedorView extends JFrame {
         return resultado[0];
     }
 
-    // Clase borde (reutilizada)
     private static class RoundedBorder extends javax.swing.border.AbstractBorder {
         int r; Color c; RoundedBorder(int r, Color c){this.r=r;this.c=c;}
         public void paintBorder(Component cmp,Graphics g,int x,int y,int w,int h){

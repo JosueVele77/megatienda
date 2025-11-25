@@ -7,8 +7,11 @@ import model.entities.Administrador;
 import model.entities.Bodeguero;
 import model.entities.Empleado;
 import model.entities.Vendedor;
+import model.entities.Usuario; // Importante
 
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,11 +31,12 @@ public class EmpleadoLogic {
         this.passwordLogic = new PasswordLogic();
     }
 
+    // ... (Tus métodos de registrarAdministrador, registrarVendedor, etc. siguen igual) ...
     public void registrarAdministrador(String usuario, String password, String nombre, String cedula) throws IOException {
         if (!validator.validarNombre(nombre)) throw new IllegalArgumentException("Nombre inválido");
         if (!validator.validarCedula(cedula)) throw new IllegalArgumentException("Cédula inválida");
-        if (!passwordLogic.validateStrength(password)) throw new IllegalArgumentException("Contraseña débil");
-
+        // Permitimos clave débil aquí si es la cédula (para registros iniciales), o validamos fuerza
+        // if (!passwordLogic.validateStrength(password)) throw new IllegalArgumentException("Contraseña débil");
         Administrador a = new Administrador(usuario, passwordLogic.hash(password), nombre, cedula);
         adminDao.add(a);
     }
@@ -40,8 +44,6 @@ public class EmpleadoLogic {
     public void registrarVendedor(String usuario, String password, String nombre, String cedula) throws IOException {
         if (!validator.validarNombre(nombre)) throw new IllegalArgumentException("Nombre inválido");
         if (!validator.validarCedula(cedula)) throw new IllegalArgumentException("Cédula inválida");
-        if (!passwordLogic.validateStrength(password)) throw new IllegalArgumentException("Contraseña débil");
-
         Vendedor v = new Vendedor(usuario, passwordLogic.hash(password), nombre, cedula);
         vendedorDao.add(v);
     }
@@ -49,8 +51,6 @@ public class EmpleadoLogic {
     public void registrarBodeguero(String usuario, String password, String nombre, String cedula) throws IOException {
         if (!validator.validarNombre(nombre)) throw new IllegalArgumentException("Nombre inválido");
         if (!validator.validarCedula(cedula)) throw new IllegalArgumentException("Cédula inválida");
-        if (!passwordLogic.validateStrength(password)) throw new IllegalArgumentException("Contraseña débil");
-
         Bodeguero b = new Bodeguero(usuario, passwordLogic.hash(password), nombre, cedula);
         bodegueroDao.add(b);
     }
@@ -63,20 +63,63 @@ public class EmpleadoLogic {
         return res;
     }
 
-    /** Buscar por usuario en los tres DAOs */
-    public Empleado buscarPorUsuario(String usuario) throws IOException {
-        for (Administrador a : adminDao.getAll()) {
-            if (a != null && a.getUsuario().equalsIgnoreCase(usuario)) return a;
+    // --- NUEVO MÉTODO PARA RESETEAR ---
+    public boolean resetearClave(String email, String nombre, String cedula) throws IOException {
+        // 1. Buscar en Administradores
+        List<Administrador> admins = adminDao.getAll();
+        for (int i = 0; i < admins.size(); i++) {
+            Administrador a = admins.get(i);
+            if (match(a, email, nombre, cedula)) {
+                // Resetear
+                a.setPassword(passwordLogic.hash(cedula)); // Clave = Cédula
+                a.setPrimerIngreso(true); // Pedir cambio
+                admins.set(i, a);
+                writeList("data/administradores.txt", admins);
+                return true;
+            }
         }
-        for (Vendedor v : vendedorDao.getAll()) {
-            if (v != null && v.getUsuario().equalsIgnoreCase(usuario)) return v;
+
+        // 2. Buscar en Vendedores
+        List<Vendedor> vends = vendedorDao.getAll();
+        for (int i = 0; i < vends.size(); i++) {
+            Vendedor v = vends.get(i);
+            if (match(v, email, nombre, cedula)) {
+                v.setPassword(passwordLogic.hash(cedula));
+                v.setPrimerIngreso(true);
+                vends.set(i, v);
+                writeList("data/vendedores.txt", vends);
+                return true;
+            }
         }
-        for (Bodeguero b : bodegueroDao.getAll()) {
-            if (b != null && b.getUsuario().equalsIgnoreCase(usuario)) return b;
+
+        // 3. Buscar en Bodegueros
+        List<Bodeguero> bods = bodegueroDao.getAll();
+        for (int i = 0; i < bods.size(); i++) {
+            Bodeguero b = bods.get(i);
+            if (match(b, email, nombre, cedula)) {
+                b.setPassword(passwordLogic.hash(cedula));
+                b.setPrimerIngreso(true);
+                bods.set(i, b);
+                writeList("data/bodegueros.txt", bods);
+                return true;
+            }
         }
-        return null;
+
+        return false; // No encontrado
     }
 
-    /* Update / delete: se implementan leyendo todo, modificando y reescribiendo.
-       Si quieres, puedo añadir métodos explícitos para actualizar archivos. */
+    private boolean match(Empleado e, String email, String nombre, String cedula) {
+        if (e == null) return false;
+        return e.getUsuario().equalsIgnoreCase(email) &&
+                e.getNombre().equalsIgnoreCase(nombre) &&
+                e.getCedula().equals(cedula);
+    }
+
+    private <T> void writeList(String path, List<T> list) throws IOException {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(path, false))) {
+            for (T item : list) {
+                if (item != null) pw.println(item.toString());
+            }
+        }
+    }
 }

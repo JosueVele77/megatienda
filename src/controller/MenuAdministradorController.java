@@ -1,36 +1,36 @@
 package controller;
 
-import model.entities.Empleado; // <--- IMPORTANTE: Agregar este import
+import model.entities.Empleado;
 import model.entities.Usuario;
+import model.logic.EmpleadoLogic; // Importar Logic
 import view.ActualizarClienteView;
 import view.MenuAdminView;
 import view.GestionEmpleadosView;
 import view.LoginView;
+import view.ResetPasswordView; // Importar nueva vista
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 
 public class MenuAdministradorController implements ActionListener {
 
     private final MenuAdminView view;
     private final Usuario admin;
+    private final EmpleadoLogic empleadoLogic; // Instancia lógica
 
     public MenuAdministradorController(MenuAdminView view, Usuario admin) {
         this.view = view;
         this.admin = admin;
+        this.empleadoLogic = new EmpleadoLogic(); // Inicializar
 
-        // --- CORRECCIÓN DEL ERROR ---
-        // Verificamos si es un Empleado para poder usar getNombre()
-        String nombreMostrar = admin.getUsuario(); // Valor por defecto (el correo/user)
-
+        // Nombre usuario
+        String nombreMostrar = admin.getUsuario();
         if (admin instanceof Empleado) {
-            // Hacemos el CASTING ((Empleado) admin) para acceder a los métodos de Empleado
             nombreMostrar = ((Empleado) admin).getNombre();
         }
-
         view.setUsuarioInfo("Admin: " + nombreMostrar);
-        // -----------------------------
 
         // Listeners
         this.view.btnGestionEmpleados.addActionListener(this);
@@ -59,13 +59,49 @@ public class MenuAdministradorController implements ActionListener {
         else if (source == view.btnGestionHorarios) {
             JOptionPane.showMessageDialog(view, "Módulo Horarios - Próximamente");
         }
+        // --- AQUÍ ESTÁ EL CAMBIO ---
         else if (source == view.btnResetPassword) {
-            JOptionPane.showMessageDialog(view, "Use el módulo 'Gestión de Empleados' para resetear.");
+            mostrarDialogoReset();
         }
         else if (source == view.btnSalir) {
             view.dispose();
             new LoginView().setVisible(true);
-        }// En MenuAdministradorController.java, dentro del actionPerformed:
+        }
+    }
 
+    private void mostrarDialogoReset() {
+        ResetPasswordView resetView = new ResetPasswordView(view);
+
+        // Acción del botón Resetear dentro del diálogo
+        resetView.btnResetear.addActionListener(evt -> {
+            String email = resetView.txtEmail.getText().trim();
+            String nombre = resetView.txtNombre.getText().trim();
+            String cedula = resetView.txtCedula.getText().trim();
+
+            if (email.isEmpty() || nombre.isEmpty() || cedula.isEmpty()) {
+                JOptionPane.showMessageDialog(resetView, "Todos los campos son obligatorios", "Error", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            try {
+                boolean exito = empleadoLogic.resetearClave(email, nombre, cedula);
+                if (exito) {
+                    JOptionPane.showMessageDialog(resetView,
+                            "¡Éxito! La contraseña se ha restablecido a la Cédula.\n" +
+                                    "El usuario deberá cambiarla en su próximo inicio de sesión.");
+                    resetView.dispose();
+                } else {
+                    JOptionPane.showMessageDialog(resetView,
+                            "No se encontró ningún empleado con esos datos exactos.",
+                            "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(resetView, "Error de archivo: " + ex.getMessage());
+            }
+        });
+
+        resetView.btnCancelar.addActionListener(evt -> resetView.dispose());
+
+        resetView.setVisible(true);
     }
 }

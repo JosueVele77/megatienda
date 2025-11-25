@@ -14,10 +14,20 @@ public class VendedorDAO extends GenericDAO<Vendedor> {
                     @Override
                     public Vendedor fromLine(String line) {
                         String[] p = line.split(";");
+                        // Validamos que tenga al menos los campos básicos (Rol, User, Pass, Nombre, Cedula)
                         if (p.length < 5) return null;
 
-                        Vendedor v = new Vendedor(p[0], p[1], p[2], p[3]);
-                        v.setPrimerIngreso(Boolean.parseBoolean(p[4]));
+                        // p[0] es el ROL ("VENDEDOR"), lo saltamos.
+                        // p[1] es USUARIO
+                        // p[2] es PASSWORD
+                        // p[3] es NOMBRE
+                        // p[4] es CEDULA
+                        Vendedor v = new Vendedor(p[1], p[2], p[3], p[4]);
+
+                        // Si existe el campo del booleano (posición 5), lo leemos
+                        if (p.length > 5) {
+                            v.setPrimerIngreso(Boolean.parseBoolean(p[5]));
+                        }
                         return v;
                     }
 

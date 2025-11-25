@@ -16,6 +16,6 @@ public abstract class Empleado extends Usuario {
 
     @Override
     public String toString() {
-        return getRol() + ";" + usuario + ";" + password + ";" + nombre + ";" + cedula;
+        return getRol() + ";" + usuario + ";" + password + ";" + nombre + ";" + cedula + ";" + primerIngreso;
     }
 }

@@ -5,7 +5,7 @@ import model.logic.ClienteLogic;
 import model.logic.ProductoLogic;
 import model.logic.VentaLogic;
 import view.MenuVendedorView;
-import view.RegistroClienteView; // Reutilizamos tu vista de registro
+import view.RegistroClienteView;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -37,6 +37,15 @@ public class MenuVendedorController implements ActionListener {
         this.ventaLogic = new VentaLogic();
         this.carrito = new ArrayList<>();
 
+        // --- NUEVO: ACTUALIZAR ETIQUETA DE USUARIO ---
+        String nombreMostrar = vendedor.getUsuario(); // Por defecto el usuario
+        if (vendedor instanceof Empleado) {
+            nombreMostrar = ((Empleado) vendedor).getNombre();
+        }
+        // Actualizamos el label que creamos en la vista
+        view.lblInfoVendedor.setText("Vendedor: " + nombreMostrar);
+        // ---------------------------------------------
+
         configurarListeners();
     }
 
@@ -45,7 +54,11 @@ public class MenuVendedorController implements ActionListener {
         view.btnAgregarProducto.addActionListener(this);
         view.btnProcesarPago.addActionListener(this);
         view.btnRegistrarCliente.addActionListener(this);
+
+        // Lambda para limpiar
         view.btnNuevaVenta.addActionListener(e -> limpiarVenta());
+
+        // Lambda para salir
         view.btnSalir.addActionListener(e -> {
             view.dispose();
             new view.LoginView().setVisible(true);
@@ -116,7 +129,7 @@ public class MenuVendedorController implements ActionListener {
                 return;
             }
 
-            // Crear detalle temporal (usamos "temp" como código de venta por ahora)
+            // Crear detalle temporal
             double subtotalItem = p.getPrecio() * cantidad;
             DetalleVenta detalle = new DetalleVenta("temp", p.getCodigo(), cantidad, subtotalItem);
 
@@ -158,7 +171,7 @@ public class MenuVendedorController implements ActionListener {
         view.lblIva.setText(String.format("IVA (15%%): $%.2f", iva));
         view.lblTotal.setText(String.format("TOTAL: $%.2f", total));
 
-        calcularCuotas(); // Actualizar info de pago también
+        calcularCuotas();
     }
 
     private void calcularCuotas() {
@@ -168,7 +181,6 @@ public class MenuVendedorController implements ActionListener {
         String tipoPago = (String) view.cmbFormaPago.getSelectedItem();
         view.lblInfoPago.setText(" "); // Limpiar
 
-        // Usamos las clases de Pago de tu modelo para calcular recargos si los hubiera
         Pago pagoObj = null;
 
         if (tipoPago.contains("DIFERIDO 3")) {
@@ -199,7 +211,6 @@ public class MenuVendedorController implements ActionListener {
             return;
         }
 
-        // Calcular el total final según la forma de pago seleccionada
         double totalBase = subtotalAcumulado * 1.15;
         double totalFinal = totalBase;
         String seleccion = (String) view.cmbFormaPago.getSelectedItem();
@@ -216,15 +227,11 @@ public class MenuVendedorController implements ActionListener {
             detallePago = "Crédito Corriente";
         }
 
-        // 1. MOSTRAR PASARELA DE PAGO (Simulación)
         boolean pagoAprobado = view.mostrarPasarelaPago(totalFinal, detallePago);
 
         if (pagoAprobado) {
             try {
-                // 2. GUARDAR VENTA REALMENTE
-                // Nota: VentaLogic internamente ya descuenta stock y guarda detalles
                 Venta ventaRealizada = ventaLogic.crearVenta(clienteActual.getCedula(), carrito);
-
                 JOptionPane.showMessageDialog(view, "Venta registrada con código: " + ventaRealizada.getCodigo());
                 limpiarVenta();
 

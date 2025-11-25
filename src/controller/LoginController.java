@@ -75,8 +75,9 @@ public class LoginController implements ActionListener {
             new MenuVendedorController(vendedorView, user).iniciar();
         }
         else if ("BODEGUERO".equals(rol)) {
-            JOptionPane.showMessageDialog(null, "Panel de Bodeguero en construcción");
-            // Aquí iría el controlador de bodeguero
+            // CÓDIGO NUEVO:
+            view.MenuBodegueroView bodegaView = new view.MenuBodegueroView();
+            new controller.MenuBodegueroController(bodegaView, user).iniciar();
         }
     }
 }
