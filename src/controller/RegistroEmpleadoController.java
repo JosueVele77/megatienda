@@ -7,13 +7,14 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.time.LocalDate;
 
 public class RegistroEmpleadoController implements ActionListener {
 
     private final EmpleadoLogic empleadoLogic;
     // private final RegistroEmpleadoView view;
 
-    // Referencias a componentes (reemplaza con tu Vista real)
+    // Referencias a componentes
     private JFrame viewFrame;
     private JTextField txtNombre;
     private JTextField txtCedula;
@@ -55,15 +56,21 @@ public class RegistroEmpleadoController implements ActionListener {
 
             if (rol == null) return;
 
+            // DATOS POR DEFECTO para evitar el error (ya que este formulario no los pide)
+            String celularDefault = "0999999999";
+            String direccionDefault = "Sin dirección";
+            String fechaDefault = LocalDate.now().toString();
+
             switch (rol.toUpperCase()) {
                 case "ADMINISTRADOR":
-                    empleadoLogic.registrarAdministrador(usuario, password, nombre, cedula); //
+                    // CORRECCIÓN: Enviamos los 7 parámetros
+                    empleadoLogic.registrarAdministrador(usuario, password, nombre, cedula, celularDefault, direccionDefault, fechaDefault);
                     break;
                 case "VENDEDOR":
-                    empleadoLogic.registrarVendedor(usuario, password, nombre, cedula);
+                    empleadoLogic.registrarVendedor(usuario, password, nombre, cedula, celularDefault, direccionDefault, fechaDefault);
                     break;
                 case "BODEGUERO":
-                    empleadoLogic.registrarBodeguero(usuario, password, nombre, cedula);
+                    empleadoLogic.registrarBodeguero(usuario, password, nombre, cedula, celularDefault, direccionDefault, fechaDefault);
                     break;
                 default:
                     JOptionPane.showMessageDialog(viewFrame, "Rol no válido");

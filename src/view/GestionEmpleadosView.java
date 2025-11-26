@@ -6,7 +6,6 @@ import controller.GestionEmpleadosController;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.RoundRectangle2D;
 
 public class GestionEmpleadosView extends JFrame {
@@ -70,6 +69,7 @@ public class GestionEmpleadosView extends JFrame {
 
         txtTelConvencional = crearInputSinLabel(phonePanel, "T. Convencional");
         txtCelular = crearInputSinLabel(phonePanel, "Celular");
+
         formPanel.add(new JLabel("Teléfonos"));
         formPanel.add(Box.createRigidArea(new Dimension(0, 5)));
         formPanel.add(phonePanel);
@@ -121,10 +121,15 @@ public class GestionEmpleadosView extends JFrame {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
         };
-        modeloTabla.addColumn("Rol");
-        modeloTabla.addColumn("Nombres");
-        modeloTabla.addColumn("Cédula");
-        modeloTabla.addColumn("Email");
+
+        // --- ORDEN DE COLUMNAS CORRECTO ---
+        modeloTabla.addColumn("Rol");           // 0
+        modeloTabla.addColumn("Nombres");       // 1
+        modeloTabla.addColumn("Cédula");        // 2
+        modeloTabla.addColumn("Celular");       // 3
+        modeloTabla.addColumn("Dirección");     // 4
+        modeloTabla.addColumn("Fecha Ingreso"); // 5
+        modeloTabla.addColumn("Email");         // 6
 
         tablaEmpleados = new JTable(modeloTabla);
         tablaEmpleados.setRowHeight(30);

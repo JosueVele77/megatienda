@@ -2,9 +2,9 @@ package model.entities;
 
 public class Bodeguero extends Empleado {
 
-    public Bodeguero(String usuario, String password,
-                     String nombre, String cedula) {
-        super(usuario, password, nombre, cedula);
+    public Bodeguero(String usuario, String password, String nombre, String cedula,
+                     String celular, String direccion, String fechaIngreso) {
+        super(usuario, password, nombre, cedula, celular, direccion, fechaIngreso);
     }
 
     @Override

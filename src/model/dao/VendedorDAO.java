@@ -13,27 +13,54 @@ public class VendedorDAO extends GenericDAO<Vendedor> {
                 new Converter<Vendedor>() {
                     @Override
                     public Vendedor fromLine(String line) {
+                        if (line == null || line.trim().isEmpty()) return null;
                         String[] p = line.split(";");
-                        // Validamos que tenga al menos los campos básicos (Rol, User, Pass, Nombre, Cedula)
+
+                        // Validamos longitud mínima
                         if (p.length < 5) return null;
 
-                        // p[0] es el ROL ("VENDEDOR"), lo saltamos.
-                        // p[1] es USUARIO
-                        // p[2] es PASSWORD
-                        // p[3] es NOMBRE
-                        // p[4] es CEDULA
-                        Vendedor v = new Vendedor(p[1], p[2], p[3], p[4]);
+                        // ESTRUCTURA DEL ARCHIVO:
+                        // p[0] = "VENDEDOR" (Lo ignoramos)
+                        // p[1] = Usuario (Email)
+                        // p[2] = Password
+                        // p[3] = Nombre
+                        // p[4] = Cédula
+                        // p[5] = Celular
+                        // p[6] = Dirección
+                        // p[7] = Fecha
+                        // p[8] = Primer Ingreso (Boolean)
 
-                        // Si existe el campo del booleano (posición 5), lo leemos
-                        if (p.length > 5) {
-                            v.setPrimerIngreso(Boolean.parseBoolean(p[5]));
+                        String usuario = p[1];
+                        String password = p[2];
+                        String nombre = p[3];
+                        String cedula = p[4];
+
+                        // Validamos si existen los campos nuevos para evitar errores con archivos viejos
+                        String celular = (p.length > 5) ? p[5] : "Sin Celular";
+                        String direccion = (p.length > 6) ? p[6] : "Sin Dirección";
+                        String fecha = (p.length > 7) ? p[7] : "2024-01-01";
+
+                        Vendedor v = new Vendedor(usuario, password, nombre, cedula, celular, direccion, fecha);
+
+                        // Leemos el booleano al final (índice 8)
+                        if (p.length > 8) {
+                            v.setPrimerIngreso(Boolean.parseBoolean(p[8]));
                         }
                         return v;
                     }
 
                     @Override
                     public String toLine(Vendedor v) {
-                        return v.getUsuario() + ";" + v.getPassword() + ";" + v.getNombre() + ";" + v.getCedula() + ";" + v.isPrimerIngreso();
+                        // Guardamos empezando con "VENDEDOR" para mantener el formato estándar
+                        return "VENDEDOR;" +
+                                v.getUsuario() + ";" +
+                                v.getPassword() + ";" +
+                                v.getNombre() + ";" +
+                                v.getCedula() + ";" +
+                                v.getCelular() + ";" +
+                                v.getDireccion() + ";" +
+                                v.getFechaIngreso() + ";" +
+                                v.isPrimerIngreso();
                     }
 
                     @Override

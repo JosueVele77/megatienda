@@ -41,13 +41,11 @@ public class GestionEmpleadosController implements ActionListener {
     }
 
     private void guardarEmpleado() {
-        // Recoger datos
-        String codigo = view.txtCodigo.getText().trim();
+        // 1. Recoger TODOS los datos
         String nombres = view.txtNombres.getText().trim();
         String cedula = view.txtCedula.getText().trim();
         String email = view.txtEmail.getText().trim();
-        String tConv = view.txtTelConvencional.getText().trim();
-        String tCel = view.txtCelular.getText().trim();
+        String celular = view.txtCelular.getText().trim(); // Solo celular
         String direccion = view.txtDireccion.getText().trim();
         String fecha = view.txtFechaIngreso.getText().trim();
         String rol = (String) view.cmbRol.getSelectedItem();
@@ -81,57 +79,64 @@ public class GestionEmpleadosController implements ActionListener {
         }
 
         // 4. Celular (Validamos que sea números y longitud)
-        if (!tCel.matches("^09\\d{8}$")) {
-            view.marcarCampoError(view.txtCelular, true);
-            hayError = true;
-        } else {
-            view.marcarCampoError(view.txtCelular, false);
-        }
-
-        // Si hay errores, mostramos el TOAST y detenemos
-        if (hayError) {
-            view.mostrarErrorFlotante("Revise los campos marcados en rojo.<br/>Cédula o datos inválidos.");
+        if (!celular.matches("^09\\d{8}$")) {
+            view.mostrarErrorFlotante("El celular debe tener 10 dígitos y empezar con 09.");
             return;
         }
 
-        // --- GUARDAR ---
         try {
-            // Contraseña por defecto: cédula
             String passwordDefault = cedula;
 
-            // NOTA: Aquí estoy usando el User como Email, tú puedes cambiarlo si prefieres otro usuario
+            // 2. ENVIAR TODOS LOS DATOS A LA LÓGICA
             switch (rol) {
                 case "ADMINISTRADOR":
-                    empleadoLogic.registrarAdministrador(email, passwordDefault, nombres, cedula);
+                    // Asumiendo que actualizaste el método registrarAdministrador también
+                    empleadoLogic.registrarAdministrador(email, passwordDefault, nombres, cedula, celular, direccion, fecha);
                     break;
                 case "VENDEDOR":
-                    empleadoLogic.registrarVendedor(email, passwordDefault, nombres, cedula);
+                    empleadoLogic.registrarVendedor(email, passwordDefault, nombres, cedula, celular, direccion, fecha);
                     break;
                 case "BODEGUERO":
-                    empleadoLogic.registrarBodeguero(email, passwordDefault, nombres, cedula);
+                    empleadoLogic.registrarBodeguero(email, passwordDefault, nombres, cedula, celular, direccion, fecha);
                     break;
             }
 
-            view.mostrarExitoFlotante("Empleado " + nombres + " registrado con éxito.");
+            view.mostrarExitoFlotante("Empleado registrado con éxito.");
             limpiarFormulario();
-            cargarTabla();
 
-        } catch (IllegalArgumentException | IOException ex) {
-            view.mostrarErrorFlotante("Error al guardar: " + ex.getMessage());
+            // 3. ACTUALIZACIÓN EN TIEMPO REAL
+            cargarTabla(); // Al llamar a esto aquí, la tabla se refresca sola
+
+        } catch (Exception ex) {
+            view.mostrarErrorFlotante("Error: " + ex.getMessage());
+            ex.printStackTrace();
         }
     }
 
     private void cargarTabla() {
-        view.modeloTabla.setRowCount(0);
+        view.modeloTabla.setRowCount(0); // Limpiar tabla
         try {
-            List<Empleado> lista = empleadoLogic.listarTodos(); //
+            List<Empleado> lista = empleadoLogic.listarTodos();
+
             for (Empleado emp : lista) {
                 if (emp != null) {
+                    // ORDEN CORRECTO DE COLUMNAS:
+                    // 0. Rol
+                    // 1. Nombres
+                    // 2. Cédula
+                    // 3. Celular
+                    // 4. Dirección
+                    // 5. Fecha Ingreso
+                    // 6. Email (Usuario)
+
                     view.modeloTabla.addRow(new Object[]{
-                            emp.getRol(),
-                            emp.getNombre(),
-                            emp.getCedula(),
-                            emp.getUsuario() // Mostramos el usuario/email
+                            emp.getRol(),           // Columna 0
+                            emp.getNombre(),        // Columna 1
+                            emp.getCedula(),        // Columna 2
+                            emp.getCelular(),       // Columna 3
+                            emp.getDireccion(),     // Columna 4
+                            emp.getFechaIngreso(),  // Columna 5
+                            emp.getUsuario()        // Columna 6 (Email)
                     });
                 }
             }

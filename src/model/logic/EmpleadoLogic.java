@@ -7,7 +7,6 @@ import model.entities.Administrador;
 import model.entities.Bodeguero;
 import model.entities.Empleado;
 import model.entities.Vendedor;
-import model.entities.Usuario; // Importante
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -31,27 +30,35 @@ public class EmpleadoLogic {
         this.passwordLogic = new PasswordLogic();
     }
 
-    // ... (Tus métodos de registrarAdministrador, registrarVendedor, etc. siguen igual) ...
-    public void registrarAdministrador(String usuario, String password, String nombre, String cedula) throws IOException {
+    // --- MÉTODOS ACTUALIZADOS PARA RECIBIR 7 PARÁMETROS ---
+
+    public void registrarAdministrador(String usuario, String password, String nombre, String cedula,
+                                       String celular, String direccion, String fecha) throws IOException {
         if (!validator.validarNombre(nombre)) throw new IllegalArgumentException("Nombre inválido");
         if (!validator.validarCedula(cedula)) throw new IllegalArgumentException("Cédula inválida");
-        // Permitimos clave débil aquí si es la cédula (para registros iniciales), o validamos fuerza
-        // if (!passwordLogic.validateStrength(password)) throw new IllegalArgumentException("Contraseña débil");
-        Administrador a = new Administrador(usuario, passwordLogic.hash(password), nombre, cedula);
+
+        // CORRECCIÓN: Ahora pasamos los 7 datos al constructor
+        Administrador a = new Administrador(usuario, passwordLogic.hash(password), nombre, cedula, celular, direccion, fecha);
         adminDao.add(a);
     }
 
-    public void registrarVendedor(String usuario, String password, String nombre, String cedula) throws IOException {
+    public void registrarVendedor(String usuario, String password, String nombre, String cedula,
+                                  String celular, String direccion, String fecha) throws IOException {
         if (!validator.validarNombre(nombre)) throw new IllegalArgumentException("Nombre inválido");
         if (!validator.validarCedula(cedula)) throw new IllegalArgumentException("Cédula inválida");
-        Vendedor v = new Vendedor(usuario, passwordLogic.hash(password), nombre, cedula);
+
+        // CORRECCIÓN
+        Vendedor v = new Vendedor(usuario, passwordLogic.hash(password), nombre, cedula, celular, direccion, fecha);
         vendedorDao.add(v);
     }
 
-    public void registrarBodeguero(String usuario, String password, String nombre, String cedula) throws IOException {
+    public void registrarBodeguero(String usuario, String password, String nombre, String cedula,
+                                   String celular, String direccion, String fecha) throws IOException {
         if (!validator.validarNombre(nombre)) throw new IllegalArgumentException("Nombre inválido");
         if (!validator.validarCedula(cedula)) throw new IllegalArgumentException("Cédula inválida");
-        Bodeguero b = new Bodeguero(usuario, passwordLogic.hash(password), nombre, cedula);
+
+        // CORRECCIÓN
+        Bodeguero b = new Bodeguero(usuario, passwordLogic.hash(password), nombre, cedula, celular, direccion, fecha);
         bodegueroDao.add(b);
     }
 
@@ -63,6 +70,7 @@ public class EmpleadoLogic {
         return res;
     }
 
+    // ... (El resto del código como resetearClave sigue igual) ...
     // --- NUEVO MÉTODO PARA RESETEAR ---
     public boolean resetearClave(String email, String nombre, String cedula) throws IOException {
         // 1. Buscar en Administradores
@@ -70,9 +78,8 @@ public class EmpleadoLogic {
         for (int i = 0; i < admins.size(); i++) {
             Administrador a = admins.get(i);
             if (match(a, email, nombre, cedula)) {
-                // Resetear
-                a.setPassword(passwordLogic.hash(cedula)); // Clave = Cédula
-                a.setPrimerIngreso(true); // Pedir cambio
+                a.setPassword(passwordLogic.hash(cedula));
+                a.setPrimerIngreso(true);
                 admins.set(i, a);
                 writeList("data/administradores.txt", admins);
                 return true;
@@ -104,8 +111,7 @@ public class EmpleadoLogic {
                 return true;
             }
         }
-
-        return false; // No encontrado
+        return false;
     }
 
     private boolean match(Empleado e, String email, String nombre, String cedula) {

@@ -13,22 +13,40 @@ public class BodegueroDAO extends GenericDAO<Bodeguero> {
                 new Converter<Bodeguero>() {
                     @Override
                     public Bodeguero fromLine(String line) {
+                        if (line == null || line.trim().isEmpty()) return null;
                         String[] p = line.split(";");
+
                         if (p.length < 5) return null;
 
-                        // Desplazamos los índices en 1 porque p[0] es el ROL
-                        Bodeguero b = new Bodeguero(p[1], p[2], p[3], p[4]);
+                        // Saltamos p[0] que es "BODEGUERO"
+                        String usuario = p[1];
+                        String password = p[2];
+                        String nombre = p[3];
+                        String cedula = p[4];
 
-                        if (p.length > 5) {
-                            b.setPrimerIngreso(Boolean.parseBoolean(p[5]));
+                        String celular = (p.length > 5) ? p[5] : "Sin Celular";
+                        String direccion = (p.length > 6) ? p[6] : "Sin Dirección";
+                        String fecha = (p.length > 7) ? p[7] : "2024-01-01";
+
+                        Bodeguero b = new Bodeguero(usuario, password, nombre, cedula, celular, direccion, fecha);
+
+                        if (p.length > 8) {
+                            b.setPrimerIngreso(Boolean.parseBoolean(p[8]));
                         }
                         return b;
                     }
 
                     @Override
                     public String toLine(Bodeguero b) {
-                        // AGREGADO: b.getCedula() al final
-                        return b.getUsuario() + ";" + b.getPassword() + ";" + b.getNombre() + ";" + b.getCedula();
+                        return "BODEGUERO;" +
+                                b.getUsuario() + ";" +
+                                b.getPassword() + ";" +
+                                b.getNombre() + ";" +
+                                b.getCedula() + ";" +
+                                b.getCelular() + ";" +
+                                b.getDireccion() + ";" +
+                                b.getFechaIngreso() + ";" +
+                                b.isPrimerIngreso();
                     }
 
                     @Override

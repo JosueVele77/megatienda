@@ -1,1 +1,1 @@
-VENDEDOR;emilyp@gmail.com;7f74cac4d527d94c8a8bd2936f610a2892de89df4b9ae7e45e734f824cc7e182;Emily Paredes;1729059400;false
+VENDEDOR;emilyp@gamil.com;7f74cac4d527d94c8a8bd2936f610a2892de89df4b9ae7e45e734f824cc7e182;Emily Paredes;1729059400;0999785043;La Magdalena;2025-11-26;false

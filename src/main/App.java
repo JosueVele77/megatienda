@@ -61,22 +61,26 @@ public class App {
             }
 
             // D. CORRECCIÓN CLAVE: Crear Admin por defecto saltando validaciones
+            // D. CORRECCIÓN CLAVE: Crear Admin por defecto saltando validaciones
             File fAdmin = new File("data/administradores.txt");
             if (fAdmin.length() == 0) {
                 System.out.println("Creando admin por defecto...");
 
-                // Usamos DAO directo para evitar que ValidacionesLogic bloquee la cédula o password
                 AdministradorDAO adminDao = new AdministradorDAO();
                 PasswordLogic passLogic = new PasswordLogic();
 
+                // ACTUALIZAR AQUÍ: Agregamos celular, dirección y fecha dummy
                 Administrador admin = new Administrador(
                         "admin@gmail.com",
-                        passLogic.hash("admin1234"), // Hasheamos la clave manualmente
+                        passLogic.hash("admin1234"),
                         "Super Admin",
-                        "1700000000"
+                        "1700000000",
+                        "0999999999",       // <--- Nuevo: Celular
+                        "Oficina Central",  // <--- Nuevo: Dirección
+                        "2024-01-01"        // <--- Nuevo: Fecha
                 );
 
-                adminDao.add(admin); // Guardamos a la fuerza
+                adminDao.add(admin);
                 System.out.println("Admin por defecto creado con éxito.");
             }
 
