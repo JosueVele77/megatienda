@@ -7,6 +7,7 @@ import model.logic.VentaLogic;
 import view.HistorialVentasView;
 import view.MenuVendedorView;
 import view.RegistroClienteView;
+import controller.RegistroClienteController; // <--- IMPORTANTE: Importar el controlador
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -38,14 +39,12 @@ public class MenuVendedorController implements ActionListener {
         this.ventaLogic = new VentaLogic();
         this.carrito = new ArrayList<>();
 
-        // --- NUEVO: ACTUALIZAR ETIQUETA DE USUARIO ---
-        String nombreMostrar = vendedor.getUsuario(); // Por defecto el usuario
+        // Actualizar etiqueta de usuario
+        String nombreMostrar = vendedor.getUsuario();
         if (vendedor instanceof Empleado) {
             nombreMostrar = ((Empleado) vendedor).getNombre();
         }
-        // Actualizamos el label que creamos en la vista
         view.lblInfoVendedor.setText("Vendedor: " + nombreMostrar);
-        // ---------------------------------------------
 
         configurarListeners();
     }
@@ -54,10 +53,7 @@ public class MenuVendedorController implements ActionListener {
         view.btnBuscarCliente.addActionListener(this);
         view.btnAgregarProducto.addActionListener(this);
         view.btnProcesarPago.addActionListener(this);
-
-        // --- VERIFICA QUE ESTA LÍNEA ESTÉ SOLO UNA VEZ ---
         view.btnRegistrarCliente.addActionListener(this);
-        // -------------------------------------------------
 
         view.btnNuevaVenta.addActionListener(e -> limpiarVenta());
 
@@ -68,7 +64,7 @@ public class MenuVendedorController implements ActionListener {
 
         view.cmbFormaPago.addActionListener(e -> calcularCuotas());
 
-        // El nuevo botón de historial
+        // Botón historial
         view.btnHistorial.addActionListener(e -> abrirHistorial());
     }
 
@@ -87,8 +83,17 @@ public class MenuVendedorController implements ActionListener {
             agregarProducto();
         }
         else if (source == view.btnRegistrarCliente) {
-            // Abrir tu ventana de registro existente
-            new RegistroClienteView().setVisible(true);
+            // --- CORRECCIÓN PRINCIPAL AQUÍ ---
+            // 1. Crear la vista
+            RegistroClienteView regView = new RegistroClienteView();
+
+            // 2. Conectar el controlador y activar los listeners
+            RegistroClienteController ctrl = new RegistroClienteController(regView);
+            ctrl.iniciarListeners();
+
+            // 3. Mostrar la ventana
+            regView.setVisible(true);
+            // ---------------------------------
         }
         else if (source == view.btnProcesarPago) {
             procesarVenta();
@@ -137,10 +142,10 @@ public class MenuVendedorController implements ActionListener {
             double subtotalItem = p.getPrecio() * cantidad;
             DetalleVenta detalle = new DetalleVenta("temp", p.getCodigo(), cantidad, subtotalItem);
 
-            // Agregar al carrito en memoria
+            // Agregar al carrito
             carrito.add(detalle);
 
-            // Agregar visualmente a la tabla
+            // Agregar a la tabla visual
             view.modeloTabla.addRow(new Object[]{
                     p.getCodigo(),
                     p.getNombre(),
@@ -149,10 +154,9 @@ public class MenuVendedorController implements ActionListener {
                     String.format("$%.2f", subtotalItem)
             });
 
-            // Recalcular totales
             actualizarTotales();
 
-            // Limpiar campo producto
+            // Resetear inputs
             view.txtBusquedaProducto.setText("");
             view.spinnerCantidad.setValue(1);
             view.txtBusquedaProducto.requestFocus();
@@ -180,10 +184,13 @@ public class MenuVendedorController implements ActionListener {
 
     private void calcularCuotas() {
         double totalBase = subtotalAcumulado * 1.15;
-        if (totalBase == 0) return;
+        if (totalBase == 0) {
+            view.lblInfoPago.setText(" ");
+            return;
+        }
 
         String tipoPago = (String) view.cmbFormaPago.getSelectedItem();
-        view.lblInfoPago.setText(" "); // Limpiar
+        view.lblInfoPago.setText(" ");
 
         Pago pagoObj = null;
 
@@ -223,27 +230,31 @@ public class MenuVendedorController implements ActionListener {
         double totalBase = subtotalAcumulado * 1.15;
         double totalFinal = totalBase;
         String seleccion = (String) view.cmbFormaPago.getSelectedItem();
-        String detallePago = "Pago Contado"; // Para mostrar en pantalla
+        String detallePago = "Pago Contado";
         String tipoPagoBD = "EFECTIVO";
 
         if (seleccion.contains("DIFERIDO 3")) {
             totalFinal = new PagoDiferido3(totalBase).calcularTotal();
             detallePago = "Diferido a 3 meses";
+            tipoPagoBD = "DIFERIDO 3 MESES";
         } else if (seleccion.contains("DIFERIDO 6")) {
             totalFinal = new PagoDiferido6(totalBase).calcularTotal();
             detallePago = "Diferido a 6 meses";
+            tipoPagoBD = "DIFERIDO 6 MESES";
         } else if (seleccion.contains("CORRIENTE")) {
             totalFinal = new PagoCorriente(totalBase).calcularTotal();
             detallePago = "Crédito Corriente";
+            tipoPagoBD = "CORRIENTE";
         }
 
         boolean pagoAprobado = view.mostrarPasarelaPago(totalFinal, detallePago);
 
         if (pagoAprobado) {
             try {
+                // Pasamos los 3 argumentos: Cédula, Detalles y Tipo de Pago
                 Venta ventaRealizada = ventaLogic.crearVenta(clienteActual.getCedula(), carrito, tipoPagoBD);
 
-                JOptionPane.showMessageDialog(view, "Venta registrada...");
+                JOptionPane.showMessageDialog(view, "Venta registrada con éxito.\nCódigo: " + ventaRealizada.getCodigo());
                 limpiarVenta();
 
             } catch (Exception ex) {

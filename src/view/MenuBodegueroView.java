@@ -5,22 +5,24 @@ import model.entities.Producto;
 
 import javax.swing.*;
 import java.awt.*;
-import java.util.List;
 
 public class MenuBodegueroView extends JFrame {
 
     // Botones del Menú Lateral
     public JButton btnInventario;
     public JButton btnRegistrarProd;
-    public JButton btnActualizarProd; // Opcional si usas el lápiz
+    public JButton btnActualizarProd;
     public JButton btnRegistrarProv;
     public JButton btnSalir;
     public JButton btnSubirImagen;
 
+    // --- NUEVA ETIQUETA DE USUARIO ---
+    public JLabel lblInfoBodeguero;
+
     // Paneles de contenido
-    public JPanel pnlContent; // Panel cambiante (CardLayout)
-    public JPanel pnlInventarioContainer; // Panel específico del inventario
-    private JPanel pnlListaProductos; // Donde se agregan las filas de productos
+    public JPanel pnlContent;
+    public JPanel pnlInventarioContainer;
+    private JPanel pnlListaProductos;
 
     // Colores
     private final Color COLOR_BG_DARK = new Color(30, 30, 35);
@@ -79,18 +81,32 @@ public class MenuBodegueroView extends JFrame {
         // --- 2. CONTENIDO ---
         pnlContent = new JPanel(new CardLayout());
 
-        // A. Panel Inventario (El que se parece a tu foto)
+        // A. Panel Inventario
         pnlInventarioContainer = new JPanel(new BorderLayout());
         pnlInventarioContainer.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
+        // --- HEADER DEL PANEL (Título + Usuario) ---
+        JPanel pnlHeader = new JPanel(new BorderLayout());
+        pnlHeader.setOpaque(false);
+        pnlHeader.setBorder(BorderFactory.createEmptyBorder(0, 0, 15, 0)); // Margen inferior
+
         JLabel lblTituloInv = new JLabel("Control de Inventario");
         lblTituloInv.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        pnlInventarioContainer.add(lblTituloInv, BorderLayout.NORTH);
+
+        // Crear y estilizar la etiqueta del usuario
+        lblInfoBodeguero = new JLabel("Bodeguero: ...");
+        estilizarBadge(lblInfoBodeguero);
+
+        pnlHeader.add(lblTituloInv, BorderLayout.WEST);
+        pnlHeader.add(lblInfoBodeguero, BorderLayout.EAST);
+
+        pnlInventarioContainer.add(pnlHeader, BorderLayout.NORTH); // Añadir Header al Norte
+        // -------------------------------------------
 
         // Contenedor con Scroll para la lista de productos
         pnlListaProductos = new JPanel();
         pnlListaProductos.setLayout(new BoxLayout(pnlListaProductos, BoxLayout.Y_AXIS));
-        // Truco para que empiece arriba
+
         JPanel wrapper = new JPanel(new BorderLayout());
         wrapper.add(pnlListaProductos, BorderLayout.NORTH);
 
@@ -102,7 +118,6 @@ public class MenuBodegueroView extends JFrame {
 
         // Agregar paneles al CardLayout
         pnlContent.add(pnlInventarioContainer, "INVENTARIO");
-        // Aquí agregarías los paneles de registro (puedes reutilizar vistas o crear nuevas)
         pnlContent.add(new JLabel("Panel Registrar Producto (En construcción)"), "REG_PROD");
         pnlContent.add(new JLabel("Panel Registrar Proveedor (En construcción)"), "REG_PROV");
 
@@ -112,8 +127,7 @@ public class MenuBodegueroView extends JFrame {
         add(mainPanel);
     }
 
-    // --- MÉTODOS PARA DIBUJAR PRODUCTOS ---
-
+    // --- MÉTODOS PARA DIBUJAR PRODUCTOS --- (Sin cambios)
     public void limpiarInventario() {
         pnlListaProductos.removeAll();
         pnlListaProductos.revalidate();
@@ -127,21 +141,19 @@ public class MenuBodegueroView extends JFrame {
         card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
         card.setPreferredSize(new Dimension(0, 100));
         card.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        // Borde redondeado sutil
         card.putClientProperty(FlatClientProperties.STYLE, "arc: 15");
 
-        // 1. Imagen (Izquierda)
+        // 1. Imagen
         JLabel lblImg = new JLabel();
         if(imagenProducto != null) {
             lblImg.setIcon(imagenProducto);
         } else {
-            // Placeholder si no hay imagen (Caja gris)
             lblImg.setIcon(new SimpleIcon("box", 64, Color.LIGHT_GRAY));
         }
         lblImg.setPreferredSize(new Dimension(80, 80));
         lblImg.setHorizontalAlignment(SwingConstants.CENTER);
 
-        // 2. Datos (Centro)
+        // 2. Datos
         JPanel pnlDatos = new JPanel(new GridLayout(2, 1));
         pnlDatos.setOpaque(false);
 
@@ -155,12 +167,8 @@ public class MenuBodegueroView extends JFrame {
         JPanel pnlInfo = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 0));
         pnlInfo.setOpaque(false);
 
-        // --- AQUÍ ESTÁ EL CAMBIO ---
-        // Agregamos Precio, Stock y AHORA EL PROVEEDOR
         pnlInfo.add(crearDato("Precio", String.format("$%.2f", p.getPrecio())));
         pnlInfo.add(crearDato("Unidades", String.valueOf(p.getStock())));
-
-        // Mostramos el nombre del proveedor (o "Sin Proveedor" si viene nulo)
         pnlInfo.add(crearDato("Proveedor", (nombreProveedor != null ? nombreProveedor : "N/A")));
 
         JPanel pnlCentro = new JPanel(new BorderLayout());
@@ -169,7 +177,7 @@ public class MenuBodegueroView extends JFrame {
         pnlCentro.add(lblCodigo, BorderLayout.CENTER);
         pnlCentro.add(pnlInfo, BorderLayout.SOUTH);
 
-        // 3. Botón Editar (Derecha) - El lápiz gigante
+        // 3. Botón Editar
         JButton btnEditar = new JButton(new SimpleIcon("edit", 32, COLOR_ACCENT));
         btnEditar.setBorderPainted(false);
         btnEditar.setContentAreaFilled(false);
@@ -178,19 +186,17 @@ public class MenuBodegueroView extends JFrame {
 
         JLabel lblEditTitle = new JLabel("Editar");
         lblEditTitle.setHorizontalAlignment(SwingConstants.CENTER);
-        lblEditTitle.setForeground(Color.GRAY); // Color gris para el texto "Editar"
+        lblEditTitle.setForeground(Color.GRAY);
 
         JPanel pnlDerecha = new JPanel(new BorderLayout());
         pnlDerecha.setOpaque(false);
         pnlDerecha.add(lblEditTitle, BorderLayout.NORTH);
         pnlDerecha.add(btnEditar, BorderLayout.CENTER);
 
-        // Armar tarjeta
         card.add(lblImg, BorderLayout.WEST);
         card.add(pnlCentro, BorderLayout.CENTER);
         card.add(pnlDerecha, BorderLayout.EAST);
 
-        // Agregar al contenedor principal con espacio
         pnlListaProductos.add(card);
         pnlListaProductos.add(Box.createRigidArea(new Dimension(0, 10)));
     }
@@ -220,11 +226,23 @@ public class MenuBodegueroView extends JFrame {
         btn.setFocusPainted(false);
         btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.putClientProperty(FlatClientProperties.STYLE, "arc: 10; margin: 0,20,0,0; Button.borderWidth:0");
-        // Aquí podrías poner el ícono real si tienes
         return btn;
     }
 
-    // Clase simple para iconos (para no depender de archivos externos por ahora)
+    // --- NUEVO: MÉTODO DE ESTILO PARA LA ETIQUETA ---
+    private void estilizarBadge(JLabel label) {
+        label.setOpaque(true);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        label.putClientProperty(FlatClientProperties.STYLE, "" +
+                "arc: 999;" +
+                "background: #262a2e;" +
+                "foreground: #62c4ff;" + // Azul neón
+                "border: 1,1,1,1, #4a90e2;" +
+                "margin: 6,15,6,15;"
+        );
+    }
+
+    // Clase simple para iconos
     public static class SimpleIcon implements Icon {
         String t; int s; Color c;
         public SimpleIcon(String t, int s, Color c){this.t=t;this.s=s;this.c=c;}
@@ -233,10 +251,10 @@ public class MenuBodegueroView extends JFrame {
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setColor(c); g2.setStroke(new BasicStroke(2));
             if(t.equals("box")) g2.drawRect(x+2,y+2,s-4,s-4);
-            if(t.equals("edit")) { // Lápiz
-                g2.drawLine(x+4, y+s-4, x+8, y+s-4); // base
-                g2.drawLine(x+4, y+s-4, x+s-4, y+4); // linea
-                g2.drawLine(x+8, y+s-4, x+s, y+8);   // linea 2
+            if(t.equals("edit")) {
+                g2.drawLine(x+4, y+s-4, x+8, y+s-4);
+                g2.drawLine(x+4, y+s-4, x+s-4, y+4);
+                g2.drawLine(x+8, y+s-4, x+s, y+8);
             }
             g2.dispose();
         }

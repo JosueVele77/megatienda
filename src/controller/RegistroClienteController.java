@@ -20,6 +20,11 @@ public class RegistroClienteController implements ActionListener {
         this.view = view;
         this.clienteLogic = new ClienteLogic();
         this.validador = new ValidacionesLogic();
+        // Los listeners ya no se inician aquí, sino en el método de abajo
+    }
+
+    // --- AGREGAMOS ESTE MÉTODO PARA QUE FUNCIONE CON EL MENÚ ---
+    public void iniciarListeners() {
         this.view.btnGuardar.addActionListener(this);
         this.view.btnCancelar.addActionListener(e -> view.dispose());
     }
@@ -32,15 +37,16 @@ public class RegistroClienteController implements ActionListener {
     }
 
     private void guardarCliente() {
+        // Recogemos todos los datos, incluida la dirección
         String nombre = view.txtNombre.getText().trim();
         String cedula = view.txtCedula.getText().trim();
         String correo = view.txtCorreo.getText().trim();
         String telefono = view.txtTelefono.getText().trim();
-        String direccion = view.txtDireccion.getText().trim(); // <--- Recoger Dirección
+        String direccion = view.txtDireccion.getText().trim();
 
         boolean hayError = false;
 
-        // Validaciones Visuales
+        // --- Validaciones Visuales ---
         if (!validador.validarCedula(cedula)) {
             view.marcarCampoError(view.txtCedula, true);
             hayError = true;
@@ -61,7 +67,6 @@ public class RegistroClienteController implements ActionListener {
             hayError = true;
         } else view.marcarCampoError(view.txtTelefono, false);
 
-        // Validación simple para dirección (solo que no esté vacía)
         if (direccion.isEmpty()) {
             view.marcarCampoError(view.txtDireccion, true);
             hayError = true;
@@ -73,7 +78,7 @@ public class RegistroClienteController implements ActionListener {
         }
 
         try {
-            // Constructor con 5 parámetros
+            // Constructor con 5 parámetros (incluyendo dirección)
             Cliente c = new Cliente(cedula, nombre, correo, telefono, direccion);
             clienteLogic.registrarCliente(c);
 

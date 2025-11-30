@@ -3,6 +3,7 @@ package controller;
 import model.entities.Producto;
 import model.entities.Proveedor;
 import model.entities.Usuario;
+import model.entities.Empleado; // Importar Empleado
 import model.logic.ProductoLogic;
 import model.logic.ProveedorLogic;
 import view.*;
@@ -28,13 +29,20 @@ public class MenuBodegueroController implements ActionListener {
         this.productoLogic = new ProductoLogic();
         this.proveedorLogic = new ProveedorLogic();
 
+        // --- NUEVO: MOSTRAR NOMBRE EN LA ETIQUETA ---
+        String nombreMostrar = usuario.getUsuario();
+        if (usuario instanceof Empleado) {
+            nombreMostrar = ((Empleado) usuario).getNombre();
+        }
+        view.lblInfoBodeguero.setText("Bodeguero: " + nombreMostrar);
+        // --------------------------------------------
+
         this.view.btnInventario.addActionListener(this);
         this.view.btnRegistrarProd.addActionListener(this);
-        this.view.btnActualizarProd.addActionListener(this); // Botón Editar menú lateral
+        this.view.btnActualizarProd.addActionListener(this);
         this.view.btnRegistrarProv.addActionListener(this);
         this.view.btnSalir.addActionListener(this);
         this.view.btnSubirImagen.addActionListener(this);
-        this.view.btnSalir.addActionListener(this);
 
         cargarInventario();
     }
@@ -53,27 +61,20 @@ public class MenuBodegueroController implements ActionListener {
             cl.show(view.pnlContent, "INVENTARIO");
         }
         else if (source == view.btnRegistrarProd) {
-            // Abrir formulario de registro
             GestionProductoView regView = new GestionProductoView(view, "Registrar Nuevo Producto");
             new GestionProductoController(regView).iniciar();
-            cargarInventario(); // Refrescar al cerrar
+            cargarInventario();
         }
         else if (source == view.btnActualizarProd) {
-            // Flujo: Pedir Código -> Buscar -> Abrir Formulario lleno
             actualizarProductoFlow();
         }
         else if (source == view.btnRegistrarProv) {
             RegistroProveedorView provView = new RegistroProveedorView(view);
             new RegistroProveedorController(provView).iniciar();
         }
-        else if (source == view.btnSalir) {
-            view.dispose();
-            new LoginView().setVisible(true);
-        }else if (source == view.btnSubirImagen) {
-            // Abrir la ventana de carga de imagen
+        else if (source == view.btnSubirImagen) {
             SubirImagenView imgView = new SubirImagenView(view);
             new SubirImagenController(imgView).iniciar();
-            // Al volver, refrescamos el inventario por si se actualizó alguna imagen visible
             cargarInventario();
         }
         else if (source == view.btnSalir) {
@@ -90,9 +91,9 @@ public class MenuBodegueroController implements ActionListener {
                 if (p != null) {
                     GestionProductoView editView = new GestionProductoView(view, "Actualizar Producto");
                     GestionProductoController ctrl = new GestionProductoController(editView);
-                    ctrl.cargarDatosProducto(p); // Pre-llenar datos
+                    ctrl.cargarDatosProducto(p);
                     ctrl.iniciar();
-                    cargarInventario(); // Refrescar
+                    cargarInventario();
                 } else {
                     JOptionPane.showMessageDialog(view, "Producto no encontrado.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -108,7 +109,6 @@ public class MenuBodegueroController implements ActionListener {
             List<Producto> productos = productoLogic.listarProductos();
 
             for (Producto p : productos) {
-                // Ahora carga desde la carpeta local
                 Icon icono = cargarImagenProducto(p.getCodigo());
 
                 String nombreProv = "Desconocido";
@@ -132,17 +132,12 @@ public class MenuBodegueroController implements ActionListener {
     }
 
     private Icon cargarImagenProducto(String codigo) {
-        // 1. Buscar en carpeta local "data/images"
         File f = new File("data/images/" + codigo + ".png");
-
         if (f.exists()) {
             ImageIcon icon = new ImageIcon(f.getAbsolutePath());
             Image img = icon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
             return new ImageIcon(img);
         }
-
-        // 2. Si no existe en disco, intentar buscar en resources (por si tienes imágenes por defecto)
-        // Esto es opcional, si quieres mantener compatibilidad con las imágenes viejas
         try {
             java.net.URL imgUrl = getClass().getResource("/images/" + codigo + ".png");
             if (imgUrl != null) {
@@ -151,7 +146,6 @@ public class MenuBodegueroController implements ActionListener {
                 return new ImageIcon(img);
             }
         } catch (Exception e) {}
-
-        return null; // Retorna null y la vista pondrá el icono gris por defecto
+        return null;
     }
 }
