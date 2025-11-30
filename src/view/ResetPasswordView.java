@@ -53,7 +53,7 @@ public class ResetPasswordView extends JDialog {
         btnCancelar = new JButton("Cancelar");
         btnCancelar.setPreferredSize(new Dimension(100, 40));
         btnCancelar.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        btnCancelar.putClientProperty(FlatClientProperties.STYLE, "arc: 999; borderWidth:0; background: #555; foreground: white");
+        btnCancelar.putClientProperty(FlatClientProperties.STYLE, "arc: 999; borderWidth:0; background: #555; foreground: #ffffff");
 
         pnlBotones.add(btnResetear);
         pnlBotones.add(btnCancelar);

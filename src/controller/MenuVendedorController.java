@@ -54,21 +54,22 @@ public class MenuVendedorController implements ActionListener {
         view.btnBuscarCliente.addActionListener(this);
         view.btnAgregarProducto.addActionListener(this);
         view.btnProcesarPago.addActionListener(this);
-        view.btnRegistrarCliente.addActionListener(this);
-        view.btnRegistrarCliente.addActionListener(this);
-        view.btnHistorial.addActionListener(e -> abrirHistorial());
 
-        // Lambda para limpiar
+        // --- VERIFICA QUE ESTA LÍNEA ESTÉ SOLO UNA VEZ ---
+        view.btnRegistrarCliente.addActionListener(this);
+        // -------------------------------------------------
+
         view.btnNuevaVenta.addActionListener(e -> limpiarVenta());
 
-        // Lambda para salir
         view.btnSalir.addActionListener(e -> {
             view.dispose();
             new view.LoginView().setVisible(true);
         });
 
-        // Listener especial para calcular cuotas al cambiar el combo
         view.cmbFormaPago.addActionListener(e -> calcularCuotas());
+
+        // El nuevo botón de historial
+        view.btnHistorial.addActionListener(e -> abrirHistorial());
     }
 
     public void iniciar() {

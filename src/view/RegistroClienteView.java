@@ -63,7 +63,7 @@ public class RegistroClienteView extends JFrame {
 
         btnCancelar = new JButton("Cancelar");
         btnCancelar.setPreferredSize(new Dimension(100, 45));
-        btnCancelar.putClientProperty(FlatClientProperties.STYLE, "arc: 999; background: #555; foreground: white; borderWidth:0");
+        btnCancelar.putClientProperty(FlatClientProperties.STYLE, "arc: 999; background: #555; foreground: #ffffff; borderWidth:0");
         btnCancelar.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         btnPanel.add(btnGuardar);

@@ -107,7 +107,7 @@ public class GestionEmpleadosView extends JFrame {
 
         btnLimpiar = new JButton("Limpiar");
         btnLimpiar.setPreferredSize(new Dimension(100, 45));
-        btnLimpiar.putClientProperty(FlatClientProperties.STYLE, "arc: 999; background: #444444; foreground: white; borderWidth:0");
+        btnLimpiar.putClientProperty(FlatClientProperties.STYLE, "arc: 999; background: #444444; foreground: #ffffff; borderWidth:0");
 
         btnPanel.add(btnGuardar);
         btnPanel.add(btnLimpiar);
