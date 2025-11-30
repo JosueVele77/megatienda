@@ -1,15 +1,17 @@
 package controller;
 
 import model.entities.Producto;
+import model.entities.Proveedor;
 import model.entities.Usuario;
 import model.logic.ProductoLogic;
-import view.MenuBodegueroView;
-import view.LoginView;
+import model.logic.ProveedorLogic;
+import view.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -18,18 +20,22 @@ public class MenuBodegueroController implements ActionListener {
     private final MenuBodegueroView view;
     private final Usuario usuario;
     private final ProductoLogic productoLogic;
+    private final ProveedorLogic proveedorLogic;
 
     public MenuBodegueroController(MenuBodegueroView view, Usuario usuario) {
         this.view = view;
         this.usuario = usuario;
         this.productoLogic = new ProductoLogic();
+        this.proveedorLogic = new ProveedorLogic();
 
         this.view.btnInventario.addActionListener(this);
         this.view.btnRegistrarProd.addActionListener(this);
+        this.view.btnActualizarProd.addActionListener(this); // Botón Editar menú lateral
         this.view.btnRegistrarProv.addActionListener(this);
         this.view.btnSalir.addActionListener(this);
+        this.view.btnSubirImagen.addActionListener(this);
+        this.view.btnSalir.addActionListener(this);
 
-        // Cargar inventario al iniciar
         cargarInventario();
     }
 
@@ -47,12 +53,28 @@ public class MenuBodegueroController implements ActionListener {
             cl.show(view.pnlContent, "INVENTARIO");
         }
         else if (source == view.btnRegistrarProd) {
-            // Aquí puedes mostrar el formulario de registro o abrir un diálogo
-            JOptionPane.showMessageDialog(view, "Aquí abriría el formulario de Registrar Producto");
-            // cl.show(view.pnlContent, "REG_PROD");
+            // Abrir formulario de registro
+            GestionProductoView regView = new GestionProductoView(view, "Registrar Nuevo Producto");
+            new GestionProductoController(regView).iniciar();
+            cargarInventario(); // Refrescar al cerrar
+        }
+        else if (source == view.btnActualizarProd) {
+            // Flujo: Pedir Código -> Buscar -> Abrir Formulario lleno
+            actualizarProductoFlow();
         }
         else if (source == view.btnRegistrarProv) {
-            JOptionPane.showMessageDialog(view, "Aquí abriría el formulario de Registrar Proveedor");
+            RegistroProveedorView provView = new RegistroProveedorView(view);
+            new RegistroProveedorController(provView).iniciar();
+        }
+        else if (source == view.btnSalir) {
+            view.dispose();
+            new LoginView().setVisible(true);
+        }else if (source == view.btnSubirImagen) {
+            // Abrir la ventana de carga de imagen
+            SubirImagenView imgView = new SubirImagenView(view);
+            new SubirImagenController(imgView).iniciar();
+            // Al volver, refrescamos el inventario por si se actualizó alguna imagen visible
+            cargarInventario();
         }
         else if (source == view.btnSalir) {
             view.dispose();
@@ -60,41 +82,76 @@ public class MenuBodegueroController implements ActionListener {
         }
     }
 
+    private void actualizarProductoFlow() {
+        String codigo = JOptionPane.showInputDialog(view, "Ingrese el Código del Producto a actualizar:");
+        if (codigo != null && !codigo.trim().isEmpty()) {
+            try {
+                Producto p = productoLogic.buscarProducto(codigo.trim());
+                if (p != null) {
+                    GestionProductoView editView = new GestionProductoView(view, "Actualizar Producto");
+                    GestionProductoController ctrl = new GestionProductoController(editView);
+                    ctrl.cargarDatosProducto(p); // Pre-llenar datos
+                    ctrl.iniciar();
+                    cargarInventario(); // Refrescar
+                } else {
+                    JOptionPane.showMessageDialog(view, "Producto no encontrado.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
     private void cargarInventario() {
-        view.limpiarInventario(); // Borra las filas anteriores
+        view.limpiarInventario();
         try {
             List<Producto> productos = productoLogic.listarProductos();
 
             for (Producto p : productos) {
-                // Aquí es donde "metes manualmente" la imagen.
-                // Por ahora pasamos null, pero podrías cargarla desde un archivo usando el código del producto
+                // Ahora carga desde la carpeta local
                 Icon icono = cargarImagenProducto(p.getCodigo());
 
-                // Agregamos la tarjeta a la vista y definimos qué hace el botón Editar
-                view.agregarTarjetaProducto(p, icono, e -> {
-                    JOptionPane.showMessageDialog(view, "Editar producto: " + p.getNombre() + "\n(Aquí abrirías la ventana de edición)");
+                String nombreProv = "Desconocido";
+                Proveedor prov = proveedorLogic.buscarProveedor(p.getCodigoProveedor());
+                if (prov != null) nombreProv = prov.getRazonSocial();
+
+                view.agregarTarjetaProducto(p, nombreProv, icono, e -> {
+                    GestionProductoView editView = new GestionProductoView(view, "Editar Producto");
+                    GestionProductoController ctrl = new GestionProductoController(editView);
+                    ctrl.cargarDatosProducto(p);
+                    ctrl.iniciar();
+                    cargarInventario();
                 });
             }
-
-            view.revalidate(); // Refrescar scroll
+            view.revalidate();
+            view.repaint();
 
         } catch (IOException ex) {
             JOptionPane.showMessageDialog(view, "Error al cargar inventario: " + ex.getMessage());
         }
     }
 
-    // Método auxiliar para que luego cargues tus imágenes
     private Icon cargarImagenProducto(String codigo) {
-        // Busca la imagen en src/main/resources/images/codigo.png
-        java.net.URL imgUrl = getClass().getResource("/images/" + codigo + ".png");
+        // 1. Buscar en carpeta local "data/images"
+        File f = new File("data/images/" + codigo + ".png");
 
-        if (imgUrl != null) {
-            ImageIcon icon = new ImageIcon(imgUrl);
-            // Escalar la imagen al tamaño de la tarjeta (80x80)
+        if (f.exists()) {
+            ImageIcon icon = new ImageIcon(f.getAbsolutePath());
             Image img = icon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
             return new ImageIcon(img);
         }
 
-        return null; // Retorna null si no existe, y la vista pondrá el icono por defecto
+        // 2. Si no existe en disco, intentar buscar en resources (por si tienes imágenes por defecto)
+        // Esto es opcional, si quieres mantener compatibilidad con las imágenes viejas
+        try {
+            java.net.URL imgUrl = getClass().getResource("/images/" + codigo + ".png");
+            if (imgUrl != null) {
+                ImageIcon icon = new ImageIcon(imgUrl);
+                Image img = icon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+                return new ImageIcon(img);
+            }
+        } catch (Exception e) {}
+
+        return null; // Retorna null y la vista pondrá el icono gris por defecto
     }
 }

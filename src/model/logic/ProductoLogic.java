@@ -9,6 +9,7 @@ import java.util.List;
 
 public class ProductoLogic {
 
+    // 1. Declaración de la variable productoDao (Esto es lo que te faltaba o no era visible)
     private final ProductoDAO productoDao;
     private final ValidacionesLogic validator;
 
@@ -31,6 +32,28 @@ public class ProductoLogic {
         }
         return null;
     }
+
+    // --- AQUÍ ESTÁ EL MÉTODO NUEVO ---
+    public boolean actualizarProducto(Producto actualizado) throws IOException {
+        // Ahora sí reconocerá 'productoDao' porque está declarado arriba
+        List<Producto> list = productoDao.getAll();
+        boolean found = false;
+
+        for (int i = 0; i < list.size(); i++) {
+            Producto p = list.get(i);
+            if (p != null && p.getCodigo().equals(actualizado.getCodigo())) {
+                list.set(i, actualizado);
+                found = true;
+                break;
+            }
+        }
+
+        if (found) {
+            writeAllToFile("data/productos.txt", list);
+        }
+        return found;
+    }
+    // --------------------------------
 
     public boolean restarStock(String codigo, int cantidad) throws IOException {
         if (cantidad <= 0) throw new IllegalArgumentException("Cantidad debe ser positiva");
@@ -63,7 +86,7 @@ public class ProductoLogic {
                 break;
             }
         }
-        if (updated) writeAllToFile("productos.txt", list);
+        if (updated) writeAllToFile("data/productos.txt", list);
         return updated;
     }
 
@@ -72,10 +95,8 @@ public class ProductoLogic {
     }
 
     private <T> void writeAllToFile(String filePath, List<T> list) {
-        // 1. Snapshot para evitar ConcurrentModificationException
         final List<T> dataSnapshot = new ArrayList<>(list);
 
-        // 2. Hilo independiente
         new Thread(() -> {
             synchronized (this) {
                 try (PrintWriter pw = new PrintWriter(new FileWriter(filePath, false))) {

@@ -13,14 +13,20 @@ public class ClienteDAO extends GenericDAO<Cliente> {
                 new Converter<Cliente>() {
                     @Override
                     public Cliente fromLine(String line) {
+                        if (line == null || line.trim().isEmpty()) return null;
                         String[] p = line.split(";");
-                        return new Cliente(p[0], p[1], p[2], p[3]);
+
+                        // Validación de compatibilidad con archivos viejos (4 columnas)
+                        String telefono = (p.length > 3) ? p[3] : "Sin Teléfono";
+                        String direccion = (p.length > 4) ? p[4] : "Sin Dirección";
+
+                        return new Cliente(p[0], p[1], p[2], telefono, direccion);
                     }
 
                     @Override
                     public String toLine(Cliente c) {
                         return c.getCedula() + ";" + c.getNombre() + ";" +
-                                c.getCorreo() + ";" + c.getDireccion();
+                                c.getCorreo() + ";" + c.getTelefono() + ";" + c.getDireccion();
                     }
 
                     @Override

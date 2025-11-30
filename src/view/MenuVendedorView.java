@@ -9,7 +9,7 @@ public class MenuVendedorView extends JFrame {
 
     // --- Componentes Principales ---
     public JPanel pnlContent;
-    public JButton btnNuevaVenta, btnRegistrarCliente, btnSalir;
+    public JButton btnNuevaVenta, btnRegistrarCliente, btnHistorial,  btnSalir;
 
     // --- ETIQUETA DE USUARIO (NUEVO) ---
     public JLabel lblInfoVendedor; // <--- Pública para que el controller la modifique
@@ -63,11 +63,24 @@ public class MenuVendedorView extends JFrame {
 
         btnNuevaVenta = crearBotonMenu("Nueva Venta", "cart");
         btnRegistrarCliente = crearBotonMenu("Nuevo Cliente", "user_add");
+
+        // 1. Agregamos los botones de arriba
         sidebar.add(btnNuevaVenta);
-        sidebar.add(Box.createRigidArea(new Dimension(0, 15)));
+        sidebar.add(Box.createRigidArea(new Dimension(0, 15))); // Espacio pequeño
+
         sidebar.add(btnRegistrarCliente);
+        sidebar.add(Box.createRigidArea(new Dimension(0, 15))); // Espacio pequeño
+
+        // --- CORRECCIÓN AQUÍ ---
+        // 2. Agregamos el Historial INMEDIATAMENTE después, antes del "Glue"
+        btnHistorial = crearBotonMenu("Historial", "history");
+        sidebar.add(btnHistorial);
+        // -----------------------
+
+        // 3. AHORA agregamos el "resorte" que empuja lo siguiente hacia el fondo
         sidebar.add(Box.createVerticalGlue());
 
+        // 4. Finalmente el botón de salir queda al fondo
         btnSalir = crearBotonMenu("Cerrar Sesión", "exit");
         btnSalir.setBackground(new Color(220, 53, 69));
         sidebar.add(btnSalir);

@@ -13,19 +13,23 @@ public class ProductoDAO extends GenericDAO<Producto> {
                 new Converter<Producto>() {
                     @Override
                     public Producto fromLine(String line) {
+                        if(line == null || line.trim().isEmpty()) return null;
                         String[] p = line.split(";");
+                        // Validamos longitud para evitar errores con archivos viejos
+                        String codProv = (p.length > 4) ? p[4] : "Sin Proveedor";
+
                         return new Producto(
                                 p[0],
                                 p[1],
                                 Double.parseDouble(p[2]),
-                                Integer.parseInt(p[3])
+                                Integer.parseInt(p[3]),
+                                codProv
                         );
                     }
 
                     @Override
                     public String toLine(Producto p) {
-                        return p.getCodigo() + ";" + p.getNombre() + ";" +
-                                p.getPrecio() + ";" + p.getStock();
+                        return p.toString();
                     }
 
                     @Override

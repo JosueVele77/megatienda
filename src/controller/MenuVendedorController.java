@@ -4,6 +4,7 @@ import model.entities.*;
 import model.logic.ClienteLogic;
 import model.logic.ProductoLogic;
 import model.logic.VentaLogic;
+import view.HistorialVentasView;
 import view.MenuVendedorView;
 import view.RegistroClienteView;
 
@@ -54,6 +55,8 @@ public class MenuVendedorController implements ActionListener {
         view.btnAgregarProducto.addActionListener(this);
         view.btnProcesarPago.addActionListener(this);
         view.btnRegistrarCliente.addActionListener(this);
+        view.btnRegistrarCliente.addActionListener(this);
+        view.btnHistorial.addActionListener(e -> abrirHistorial());
 
         // Lambda para limpiar
         view.btnNuevaVenta.addActionListener(e -> limpiarVenta());
@@ -201,6 +204,11 @@ public class MenuVendedorController implements ActionListener {
         }
     }
 
+    private void abrirHistorial() {
+        HistorialVentasView hView = new HistorialVentasView(view);
+        new HistorialVentasController(hView).iniciar();
+    }
+
     private void procesarVenta() {
         if (clienteActual == null) {
             JOptionPane.showMessageDialog(view, "Debe seleccionar un cliente válido.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -214,7 +222,8 @@ public class MenuVendedorController implements ActionListener {
         double totalBase = subtotalAcumulado * 1.15;
         double totalFinal = totalBase;
         String seleccion = (String) view.cmbFormaPago.getSelectedItem();
-        String detallePago = "Pago Contado";
+        String detallePago = "Pago Contado"; // Para mostrar en pantalla
+        String tipoPagoBD = "EFECTIVO";
 
         if (seleccion.contains("DIFERIDO 3")) {
             totalFinal = new PagoDiferido3(totalBase).calcularTotal();
@@ -231,8 +240,9 @@ public class MenuVendedorController implements ActionListener {
 
         if (pagoAprobado) {
             try {
-                Venta ventaRealizada = ventaLogic.crearVenta(clienteActual.getCedula(), carrito);
-                JOptionPane.showMessageDialog(view, "Venta registrada con código: " + ventaRealizada.getCodigo());
+                Venta ventaRealizada = ventaLogic.crearVenta(clienteActual.getCedula(), carrito, tipoPagoBD);
+
+                JOptionPane.showMessageDialog(view, "Venta registrada...");
                 limpiarVenta();
 
             } catch (Exception ex) {

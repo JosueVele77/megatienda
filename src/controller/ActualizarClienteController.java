@@ -97,7 +97,8 @@ public class ActualizarClienteController implements ActionListener {
                 clienteActual.getCedula(), // NO CAMBIA
                 nuevosNombres,
                 nuevoEmail,
-                dirFinal
+                nuevoTelefono,  // Pasamos el teléfono limpio
+                nuevaDireccion  // Pasamos la dirección limpia
         );
 
         try {

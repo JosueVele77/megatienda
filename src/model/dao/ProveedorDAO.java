@@ -13,19 +13,20 @@ public class ProveedorDAO extends GenericDAO<Proveedor> {
                 new Converter<Proveedor>() {
                     @Override
                     public Proveedor fromLine(String line) {
+                        if(line == null || line.isEmpty()) return null;
                         String[] p = line.split(";");
-                        return new Proveedor(p[0], p[1], p[2], p[3]);
+                        if(p.length < 5) return null; // Validación básica
+                        return new Proveedor(p[0], p[1], p[2], p[3], p[4]);
                     }
 
                     @Override
                     public String toLine(Proveedor p) {
-                        return p.getRuc() + ";" + p.getNombreEmpresa() + ";" +
-                                p.getRepresentante() + ";" + p.getArea();
+                        return p.toFileString();
                     }
 
                     @Override
                     public boolean match(Proveedor p, String... args) {
-                        return p.getRuc().equals(args[0]);
+                        return p.getCodigo().equals(args[0]);
                     }
                 }
         ));

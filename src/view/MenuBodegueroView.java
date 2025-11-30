@@ -15,6 +15,7 @@ public class MenuBodegueroView extends JFrame {
     public JButton btnActualizarProd; // Opcional si usas el lápiz
     public JButton btnRegistrarProv;
     public JButton btnSalir;
+    public JButton btnSubirImagen;
 
     // Paneles de contenido
     public JPanel pnlContent; // Panel cambiante (CardLayout)
@@ -58,6 +59,7 @@ public class MenuBodegueroView extends JFrame {
         btnRegistrarProd = crearBotonMenu("Registrar Producto", "add");
         btnActualizarProd = crearBotonMenu("Actualizar Producto", "edit");
         btnRegistrarProv = crearBotonMenu("Registrar Proveedor", "group");
+        btnSubirImagen = crearBotonMenu("Subir Imagen", "image");
 
         sidebar.add(btnInventario);
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
@@ -66,6 +68,8 @@ public class MenuBodegueroView extends JFrame {
         sidebar.add(btnActualizarProd);
         sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
         sidebar.add(btnRegistrarProv);
+        sidebar.add(Box.createRigidArea(new Dimension(0, 10)));
+        sidebar.add(btnSubirImagen);
 
         sidebar.add(Box.createVerticalGlue());
         btnSalir = crearBotonMenu("Cerrar Sesión", "exit");
@@ -116,7 +120,7 @@ public class MenuBodegueroView extends JFrame {
         pnlListaProductos.repaint();
     }
 
-    public void agregarTarjetaProducto(Producto p, Icon imagenProducto, java.awt.event.ActionListener accionEditar) {
+    public void agregarTarjetaProducto(Producto p, String nombreProveedor, Icon imagenProducto, java.awt.event.ActionListener accionEditar) {
         // Panel base de la tarjeta
         JPanel card = new JPanel(new BorderLayout(15, 0));
         card.setBackground(COLOR_CARD_BG);
@@ -131,7 +135,7 @@ public class MenuBodegueroView extends JFrame {
         if(imagenProducto != null) {
             lblImg.setIcon(imagenProducto);
         } else {
-            // Placeholder si no hay imagen
+            // Placeholder si no hay imagen (Caja gris)
             lblImg.setIcon(new SimpleIcon("box", 64, Color.LIGHT_GRAY));
         }
         lblImg.setPreferredSize(new Dimension(80, 80));
@@ -151,14 +155,18 @@ public class MenuBodegueroView extends JFrame {
         JPanel pnlInfo = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 0));
         pnlInfo.setOpaque(false);
 
-        // Precio y Stock estilizados como en tu foto
+        // --- AQUÍ ESTÁ EL CAMBIO ---
+        // Agregamos Precio, Stock y AHORA EL PROVEEDOR
         pnlInfo.add(crearDato("Precio", String.format("$%.2f", p.getPrecio())));
-        pnlInfo.add(crearDato("Stock", String.valueOf(p.getStock())));
+        pnlInfo.add(crearDato("Unidades", String.valueOf(p.getStock())));
+
+        // Mostramos el nombre del proveedor (o "Sin Proveedor" si viene nulo)
+        pnlInfo.add(crearDato("Proveedor", (nombreProveedor != null ? nombreProveedor : "N/A")));
 
         JPanel pnlCentro = new JPanel(new BorderLayout());
         pnlCentro.setOpaque(false);
         pnlCentro.add(lblNombre, BorderLayout.NORTH);
-        pnlCentro.add(lblCodigo, BorderLayout.CENTER); // Opcional
+        pnlCentro.add(lblCodigo, BorderLayout.CENTER);
         pnlCentro.add(pnlInfo, BorderLayout.SOUTH);
 
         // 3. Botón Editar (Derecha) - El lápiz gigante
@@ -170,6 +178,7 @@ public class MenuBodegueroView extends JFrame {
 
         JLabel lblEditTitle = new JLabel("Editar");
         lblEditTitle.setHorizontalAlignment(SwingConstants.CENTER);
+        lblEditTitle.setForeground(Color.GRAY); // Color gris para el texto "Editar"
 
         JPanel pnlDerecha = new JPanel(new BorderLayout());
         pnlDerecha.setOpaque(false);

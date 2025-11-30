@@ -20,11 +20,8 @@ public class RegistroClienteController implements ActionListener {
         this.view = view;
         this.clienteLogic = new ClienteLogic();
         this.validador = new ValidacionesLogic();
-    }
-
-    public void iniciarListeners() {
-        view.btnGuardar.addActionListener(this);
-        view.btnCancelar.addActionListener(e -> view.dispose());
+        this.view.btnGuardar.addActionListener(this);
+        this.view.btnCancelar.addActionListener(e -> view.dispose());
     }
 
     @Override
@@ -35,67 +32,56 @@ public class RegistroClienteController implements ActionListener {
     }
 
     private void guardarCliente() {
-        // Obtener datos
         String nombre = view.txtNombre.getText().trim();
         String cedula = view.txtCedula.getText().trim();
         String correo = view.txtCorreo.getText().trim();
         String telefono = view.txtTelefono.getText().trim();
+        String direccion = view.txtDireccion.getText().trim(); // <--- Recoger Dirección
 
         boolean hayError = false;
 
-        // --- VALIDACIONES VISUALES ---
-
-        // 1. Cédula
+        // Validaciones Visuales
         if (!validador.validarCedula(cedula)) {
             view.marcarCampoError(view.txtCedula, true);
             hayError = true;
-        } else {
-            view.marcarCampoError(view.txtCedula, false);
-        }
+        } else view.marcarCampoError(view.txtCedula, false);
 
-        // 2. Nombre
         if (!validador.validarNombre(nombre)) {
             view.marcarCampoError(view.txtNombre, true);
             hayError = true;
-        } else {
-            view.marcarCampoError(view.txtNombre, false);
-        }
+        } else view.marcarCampoError(view.txtNombre, false);
 
-        // 3. Correo
         if (!validador.validarEmail(correo)) {
             view.marcarCampoError(view.txtCorreo, true);
             hayError = true;
-        } else {
-            view.marcarCampoError(view.txtCorreo, false);
-        }
+        } else view.marcarCampoError(view.txtCorreo, false);
 
-        // 4. Teléfono (Regex simple de 10 dígitos empezando con 09)
         if (!telefono.matches("^09\\d{8}$")) {
             view.marcarCampoError(view.txtTelefono, true);
             hayError = true;
-        } else {
-            view.marcarCampoError(view.txtTelefono, false);
-        }
+        } else view.marcarCampoError(view.txtTelefono, false);
 
-        // Si hay error, detenemos
+        // Validación simple para dirección (solo que no esté vacía)
+        if (direccion.isEmpty()) {
+            view.marcarCampoError(view.txtDireccion, true);
+            hayError = true;
+        } else view.marcarCampoError(view.txtDireccion, false);
+
         if (hayError) {
-            JOptionPane.showMessageDialog(view, "Por favor corrija los campos marcados en rojo.", "Error de Validación", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(view, "Por favor corrija los campos marcados.", "Error", JOptionPane.WARNING_MESSAGE);
             return;
         }
 
-        // --- GUARDAR ---
         try {
-            // Concatenamos dirección y teléfono si tu modelo Cliente aún no tiene campo separado
-            // O usamos el campo dirección para guardar el teléfono temporalmente
-            Cliente c = new Cliente(cedula, nombre, correo, telefono);
-
+            // Constructor con 5 parámetros
+            Cliente c = new Cliente(cedula, nombre, correo, telefono, direccion);
             clienteLogic.registrarCliente(c);
 
             JOptionPane.showMessageDialog(view, "Cliente registrado exitosamente.");
             view.dispose();
 
         } catch (IllegalArgumentException | IOException ex) {
-            JOptionPane.showMessageDialog(view, "Error al guardar: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(view, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }

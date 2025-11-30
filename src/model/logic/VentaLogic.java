@@ -8,6 +8,7 @@ import model.entities.Venta;
 
 import java.io.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,20 +24,17 @@ public class VentaLogic {
         this.productoLogic = new ProductoLogic();
     }
 
-    /**
-     * Crea una venta con sus detalles: valida stock, actualiza stock, guarda venta y detalles.
-     * Devuelve la venta creada (con código) o lanza excepción si algo falla.
-     */
-    public Venta crearVenta(String cedulaCliente, List<DetalleVenta> detalles) throws IOException {
+    // --- ACTUALIZADO: Recibe tipoPago ---
+    public Venta crearVenta(String cedulaCliente, List<DetalleVenta> detalles, String tipoPago) throws IOException {
         if (detalles == null || detalles.isEmpty()) throw new IllegalArgumentException("Detalles vacíos");
-        // validar stock para todos los productos primero
+
+        // Validaciones de stock (sin cambios)
         for (DetalleVenta d : detalles) {
             Producto p = productoLogic.buscarProducto(d.getCodigoProducto());
             if (p == null) throw new IllegalStateException("Producto no existe: " + d.getCodigoProducto());
             if (p.getStock() < d.getCantidad()) throw new IllegalStateException("Stock insuficiente para: " + p.getCodigo());
         }
 
-        // generar código único
         String codigoVenta = UUID.randomUUID().toString();
         double total = 0.0;
         for (DetalleVenta d : detalles) {
@@ -44,12 +42,13 @@ public class VentaLogic {
         }
 
         String fecha = LocalDate.now().toString();
-        Venta v = new Venta(codigoVenta, cedulaCliente, total, fecha);
+
+        // Crear Venta con el TIPO DE PAGO
+        Venta v = new Venta(codigoVenta, cedulaCliente, total, fecha, tipoPago);
         ventaDao.add(v);
 
-        // guardar detalles y actualizar stock
+        // Guardar detalles y actualizar stock
         for (DetalleVenta d : detalles) {
-            // asociar al código de la venta
             DetalleVenta detalle = new DetalleVenta(codigoVenta, d.getCodigoProducto(), d.getCantidad(), d.getSubtotal());
             detalleDao.add(detalle);
             productoLogic.restarStock(d.getCodigoProducto(), d.getCantidad());
@@ -60,5 +59,10 @@ public class VentaLogic {
 
     public List<Venta> listarVentas() throws IOException {
         return ventaDao.getAll();
+    }
+
+    // --- NUEVO: Obtener todos los detalles ---
+    public List<DetalleVenta> listarTodosDetalles() throws IOException {
+        return detalleDao.getAll();
     }
 }
