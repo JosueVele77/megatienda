@@ -66,7 +66,7 @@ public class LoginView extends JFrame {
         txtUsuario = new JTextField();
         txtUsuario.setPreferredSize(new Dimension(300, 40));
         txtUsuario.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
-        txtUsuario.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "admin@gmail.com");
+        txtUsuario.putClientProperty(FlatClientProperties.PLACEHOLDER_TEXT, "correo@gmail.com");
         txtUsuario.putClientProperty(FlatClientProperties.COMPONENT_ROUND_RECT, true);
 
         JLabel lblPass = new JLabel("Contraseña");
