@@ -1,12 +1,12 @@
 package view;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.FlatLaf;
 import controller.ActualizarClienteController;
 import model.entities.Cliente;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.geom.Ellipse2D;
 
 public class ActualizarClienteView extends JFrame {
 
@@ -14,18 +14,15 @@ public class ActualizarClienteView extends JFrame {
     public JTextField txtBusqueda;
     public JButton btnBuscar;
 
-    // Componentes de Datos (Panel oculto inicialmente)
+    // Componentes de Datos
     public JPanel pnlDatos;
     public JTextField txtNombres, txtEmail, txtTelefono, txtDireccion;
-    public JTextField txtCedulaInmutable; // Campo bloqueado
+    public JTextField txtCedulaInmutable;
     public JButton btnActualizar, btnCancelar;
-
-    // Colores
-    private final Color COLOR_ACCENT = new Color(59, 130, 246); // Azul
-    private final Color COLOR_BG_SECONDARY = new Color(45, 45, 50);
 
     public ActualizarClienteView() {
         initComponents();
+        actualizarColores(); // Aplicar colores al iniciar
     }
 
     private void initComponents() {
@@ -38,7 +35,7 @@ public class ActualizarClienteView extends JFrame {
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));
 
-        // --- 1. SECCIÓN DE BÚSQUEDA (Siempre visible) ---
+        // --- 1. SECCIÓN DE BÚSQUEDA ---
         JLabel lblTitulo = new JLabel("Buscar Cliente");
         lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 18));
         lblTitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -51,7 +48,7 @@ public class ActualizarClienteView extends JFrame {
         estilizarCampo(txtBusqueda, "Ingrese Cédula", "search");
 
         btnBuscar = new JButton("Buscar");
-        btnBuscar.setBackground(COLOR_ACCENT);
+        btnBuscar.setBackground(new Color(59, 130, 246));
         btnBuscar.setForeground(Color.WHITE);
         btnBuscar.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btnBuscar.putClientProperty(FlatClientProperties.STYLE, "arc: 999; borderWidth: 0");
@@ -60,15 +57,11 @@ public class ActualizarClienteView extends JFrame {
         pnlBusqueda.add(txtBusqueda, BorderLayout.CENTER);
         pnlBusqueda.add(btnBuscar, BorderLayout.EAST);
 
-        // --- 2. SECCIÓN DE DATOS (Oculta al inicio) ---
+        // --- 2. SECCIÓN DE DATOS ---
         pnlDatos = new JPanel();
         pnlDatos.setLayout(new BoxLayout(pnlDatos, BoxLayout.Y_AXIS));
-        pnlDatos.setBackground(COLOR_BG_SECONDARY);
-        pnlDatos.setBorder(BorderFactory.createCompoundBorder(
-                new RoundedBorder(20, COLOR_BG_SECONDARY),
-                BorderFactory.createEmptyBorder(20, 20, 20, 20)
-        ));
-        pnlDatos.setVisible(false); // ¡Secreto!
+        // El color y borde se definen en actualizarColores()
+        pnlDatos.setVisible(false);
 
         // Campos del formulario
         txtCedulaInmutable = crearInputNoEditable(pnlDatos, "Cédula (No editable)");
@@ -89,9 +82,8 @@ public class ActualizarClienteView extends JFrame {
         btnActualizar.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
         btnCancelar = new JButton("Cancelar");
-        btnCancelar.putClientProperty(FlatClientProperties.STYLE, "arc: 999; background: #555; foreground: white; borderWidth: 0");
-        btnCancelar.setPreferredSize(new Dimension(100, 45));
         btnCancelar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        // El estilo del botón cancelar también se ajusta en actualizarColores
 
         pnlBotones.add(btnActualizar);
         pnlBotones.add(btnCancelar);
@@ -103,19 +95,54 @@ public class ActualizarClienteView extends JFrame {
         mainPanel.add(Box.createRigidArea(new Dimension(0, 15)));
         mainPanel.add(pnlBusqueda);
         mainPanel.add(Box.createRigidArea(new Dimension(0, 30)));
-        mainPanel.add(pnlDatos); // Panel oculto
+        mainPanel.add(pnlDatos);
         mainPanel.add(Box.createVerticalGlue());
 
         add(mainPanel);
     }
 
-    // --- Helpers de Diseño ---
+    // --- NUEVO: GESTIÓN DE COLORES ---
+    public void actualizarColores() {
+        boolean isDark = FlatLaf.isLafDark();
 
+        if (isDark) {
+            // Panel Datos Oscuro
+            pnlDatos.setBackground(new Color(45, 45, 50));
+            pnlDatos.setBorder(BorderFactory.createCompoundBorder(
+                    new RoundedBorder(20, new Color(45, 45, 50)),
+                    BorderFactory.createEmptyBorder(20, 20, 20, 20)
+            ));
+
+            // Botón Cancelar Oscuro
+            btnCancelar.putClientProperty(FlatClientProperties.STYLE, "arc: 999; background: #555; foreground: #ffffff; borderWidth: 0");
+
+            // Input Bloqueado Oscuro
+            txtCedulaInmutable.putClientProperty(FlatClientProperties.STYLE, "arc: 999; background: #333; foreground: #888");
+
+        } else {
+            // Panel Datos Claro (Blanco)
+            pnlDatos.setBackground(Color.WHITE);
+            // Borde sutil gris en modo claro
+            pnlDatos.setBorder(BorderFactory.createCompoundBorder(
+                    new RoundedBorder(20, new Color(230, 230, 230)),
+                    BorderFactory.createEmptyBorder(20, 20, 20, 20)
+            ));
+
+            // Botón Cancelar Claro
+            btnCancelar.putClientProperty(FlatClientProperties.STYLE, "arc: 999; background: #e0e0e0; foreground: #333; borderWidth: 0");
+
+            // Input Bloqueado Claro
+            txtCedulaInmutable.putClientProperty(FlatClientProperties.STYLE, "arc: 999; background: #f0f0f0; foreground: #888");
+        }
+
+        SwingUtilities.updateComponentTreeUI(this);
+    }
+
+    // --- Helpers ---
     public void mostrarFormulario(boolean mostrar) {
         pnlDatos.setVisible(mostrar);
         this.revalidate();
         this.repaint();
-        // Ajustar tamaño dinámicamente si es necesario
         if(mostrar) this.setSize(500, 700);
         else this.setSize(500, 250);
     }
@@ -124,11 +151,8 @@ public class ActualizarClienteView extends JFrame {
         txtCedulaInmutable.setText(c.getCedula());
         txtNombres.setText(c.getNombre());
         txtEmail.setText(c.getCorreo());
-
-        // Como tu clase Cliente solo tiene "Direccion", asumiremos que ahí guardaste todo
-        // O separamos si concatenaste. Por ahora cargamos la dirección.
         txtDireccion.setText(c.getDireccion());
-        txtTelefono.setText(""); // Campo vacío para que lo llenen si desean actualizar
+        txtTelefono.setText(c.getTelefono());
     }
 
     private JTextField crearInput(JPanel parent, String label, String icon) {
@@ -144,8 +168,7 @@ public class ActualizarClienteView extends JFrame {
     private JTextField crearInputNoEditable(JPanel parent, String label) {
         JTextField t = crearInput(parent, label, "lock");
         t.setEditable(false);
-        t.setEnabled(false); // Visualmente bloqueado
-        t.putClientProperty(FlatClientProperties.STYLE, "arc: 999; background: #333; foreground: #888");
+        t.setEnabled(false);
         return t;
     }
 
@@ -157,32 +180,31 @@ public class ActualizarClienteView extends JFrame {
         field.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_ICON, new SimpleIcon(icon));
     }
 
-    // --- Notificaciones ---
     public void mostrarToast(String msg, boolean error) {
-        // Reutiliza la lógica del Toast que te di en la respuesta anterior
-        // Si quieres te la copio aquí de nuevo, es el método mostrarToast() con JWindow
         JOptionPane.showMessageDialog(this, msg, error ? "Error" : "Éxito", error ? JOptionPane.ERROR_MESSAGE : JOptionPane.INFORMATION_MESSAGE);
     }
 
-    // --- Clase Iconos (SimpleIcon) ---
-    // (La misma clase SimpleIcon de la respuesta anterior para mantener consistencia)
+    // Iconos Simples
     private static class SimpleIcon implements Icon {
-        String t; SimpleIcon(String t){this.t=t;}
+        String t;
+        SimpleIcon(String t){this.t=t;}
         public void paintIcon(Component c, Graphics g, int x, int y) {
             Graphics2D g2=(Graphics2D)g; g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setColor(Color.GRAY); g2.setStroke(new BasicStroke(2));
-            if(t.equals("search")) g2.drawOval(x+4,y+4,8,8);
-            if(t.equals("search")) g2.drawLine(x+10,y+10,x+14,y+14);
-            // ... resto de iconos (user, email, home, lock) ...
-            if(t.equals("user")) { g2.drawArc(x+6, y+4, 4, 4, 0, 360); g2.drawArc(x+4, y+10, 8, 6, 0, 180); }
-            if(t.equals("lock")) { g2.drawRect(x+5, y+8, 6, 6); g2.drawArc(x+6, y+4, 4, 6, 0, 180); }
+            if(t.equals("search")) { g2.drawOval(x+4,y+4,8,8); g2.drawLine(x+10,y+10,x+14,y+14); }
+            else if(t.equals("user")) { g2.drawArc(x+6, y+4, 4, 4, 0, 360); g2.drawArc(x+4, y+10, 8, 6, 0, 180); }
+            else if(t.equals("lock")) { g2.drawRect(x+5, y+8, 6, 6); g2.drawArc(x+6, y+4, 4, 6, 0, 180); }
+            else if(t.equals("email")) { g2.drawRect(cx(x)-6, cy(y)-4, 12, 8); g2.drawLine(cx(x)-6, cy(y)-4, cx(x), cy(y)+1); g2.drawLine(cx(x), cy(y)+1, cx(x)+6, cy(y)-4); }
+            else if(t.equals("phone")) { g2.drawRoundRect(cx(x)-3, cy(y)-5, 6, 10, 2, 2); }
+            else if(t.equals("home")) { int[] xp={cx(x)-5,cx(x),cx(x)+5}; int[] yp={cy(y)-2,cy(y)-7,cy(y)-2}; g2.drawPolyline(xp, yp, 3); g2.drawRect(cx(x)-4, cy(y)-2, 8, 7); }
         }
+        int cx(int x){return x+8;} int cy(int y){return y+8;}
         public int getIconWidth(){return 16;} public int getIconHeight(){return 16;}
     }
 
-    // Borde Redondeado (Igual que el anterior)
     private static class RoundedBorder extends javax.swing.border.AbstractBorder {
-        int r; Color c; RoundedBorder(int r, Color c){this.r=r;this.c=c;}
+        int r; Color c;
+        RoundedBorder(int r, Color c){this.r=r;this.c=c;}
         public void paintBorder(Component cmp,Graphics g,int x,int y,int w,int h){
             Graphics2D g2=(Graphics2D)g; g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2.setColor(c); g2.drawRoundRect(x,y,w-1,h-1,r,r);

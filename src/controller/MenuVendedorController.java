@@ -1,5 +1,8 @@
 package controller;
 
+import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.themes.FlatMacDarkLaf;
+import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import model.entities.*;
 import model.logic.ClienteLogic;
 import model.logic.ProductoLogic;
@@ -54,6 +57,7 @@ public class MenuVendedorController implements ActionListener {
         view.btnAgregarProducto.addActionListener(this);
         view.btnProcesarPago.addActionListener(this);
         view.btnRegistrarCliente.addActionListener(this);
+        view.btnTema.addActionListener(e -> cambiarTema());
 
         view.btnNuevaVenta.addActionListener(e -> limpiarVenta());
 
@@ -273,5 +277,24 @@ public class MenuVendedorController implements ActionListener {
         view.txtBusquedaCliente.setText("");
         view.lblClienteNombre.setForeground(java.awt.Color.GRAY);
         actualizarTotales();
+    }
+
+    private void cambiarTema() {
+        try {
+            if (FlatLaf.isLafDark()) {
+                UIManager.setLookAndFeel(new FlatMacLightLaf());
+            } else {
+                UIManager.setLookAndFeel(new FlatMacDarkLaf());
+            }
+
+            // 1. Actualizar la librería visual
+            FlatLaf.updateUI();
+
+            // 2. IMPORTANTE: Actualizar los colores manuales de la vista
+            view.actualizarColores();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 }

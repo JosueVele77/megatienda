@@ -1,9 +1,12 @@
 package controller;
 
+import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.themes.FlatMacDarkLaf;
+import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import model.entities.Producto;
 import model.entities.Proveedor;
 import model.entities.Usuario;
-import model.entities.Empleado; // Importar Empleado
+import model.entities.Empleado;
 import model.logic.ProductoLogic;
 import model.logic.ProveedorLogic;
 import view.*;
@@ -29,20 +32,22 @@ public class MenuBodegueroController implements ActionListener {
         this.productoLogic = new ProductoLogic();
         this.proveedorLogic = new ProveedorLogic();
 
-        // --- NUEVO: MOSTRAR NOMBRE EN LA ETIQUETA ---
         String nombreMostrar = usuario.getUsuario();
         if (usuario instanceof Empleado) {
             nombreMostrar = ((Empleado) usuario).getNombre();
         }
         view.lblInfoBodeguero.setText("Bodeguero: " + nombreMostrar);
-        // --------------------------------------------
 
+        // Listeners
         this.view.btnInventario.addActionListener(this);
         this.view.btnRegistrarProd.addActionListener(this);
         this.view.btnActualizarProd.addActionListener(this);
         this.view.btnRegistrarProv.addActionListener(this);
-        this.view.btnSalir.addActionListener(this);
         this.view.btnSubirImagen.addActionListener(this);
+        this.view.btnSalir.addActionListener(this);
+
+        // Listener del Toggle Button (Tema)
+        this.view.btnTema.addActionListener(e -> cambiarTema());
 
         cargarInventario();
     }
@@ -83,6 +88,27 @@ public class MenuBodegueroController implements ActionListener {
         }
     }
 
+    private void cambiarTema() {
+        try {
+            if (FlatLaf.isLafDark()) {
+                UIManager.setLookAndFeel(new FlatMacLightLaf());
+            } else {
+                UIManager.setLookAndFeel(new FlatMacDarkLaf());
+            }
+            // 1. Actualizar UI de Swing
+            FlatLaf.updateUI();
+
+            // 2. IMPORTANTE: Actualizar colores manuales de la vista
+            view.actualizarColores();
+
+            // 3. Recargar inventario para que las tarjetas tomen el nuevo color
+            cargarInventario();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
     private void actualizarProductoFlow() {
         String codigo = JOptionPane.showInputDialog(view, "Ingrese el Código del Producto a actualizar:");
         if (codigo != null && !codigo.trim().isEmpty()) {
@@ -110,7 +136,6 @@ public class MenuBodegueroController implements ActionListener {
 
             for (Producto p : productos) {
                 Icon icono = cargarImagenProducto(p.getCodigo());
-
                 String nombreProv = "Desconocido";
                 Proveedor prov = proveedorLogic.buscarProveedor(p.getCodigoProveedor());
                 if (prov != null) nombreProv = prov.getRazonSocial();

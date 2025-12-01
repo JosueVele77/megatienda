@@ -1,13 +1,16 @@
 package controller;
 
+import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.themes.FlatMacDarkLaf;
+import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import model.entities.Empleado;
 import model.entities.Usuario;
-import model.logic.EmpleadoLogic; // Importar Logic
+import model.logic.EmpleadoLogic;
 import view.ActualizarClienteView;
 import view.MenuAdminView;
 import view.GestionEmpleadosView;
 import view.LoginView;
-import view.ResetPasswordView; // Importar nueva vista
+import view.ResetPasswordView;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -18,14 +21,13 @@ public class MenuAdministradorController implements ActionListener {
 
     private final MenuAdminView view;
     private final Usuario admin;
-    private final EmpleadoLogic empleadoLogic; // Instancia lógica
+    private final EmpleadoLogic empleadoLogic;
 
     public MenuAdministradorController(MenuAdminView view, Usuario admin) {
         this.view = view;
         this.admin = admin;
-        this.empleadoLogic = new EmpleadoLogic(); // Inicializar
+        this.empleadoLogic = new EmpleadoLogic();
 
-        // Nombre usuario
         String nombreMostrar = admin.getUsuario();
         if (admin instanceof Empleado) {
             nombreMostrar = ((Empleado) admin).getNombre();
@@ -38,6 +40,9 @@ public class MenuAdministradorController implements ActionListener {
         this.view.btnGestionHorarios.addActionListener(this);
         this.view.btnResetPassword.addActionListener(this);
         this.view.btnSalir.addActionListener(this);
+
+        // Listener Tema
+        this.view.btnTema.addActionListener(e -> cambiarTema());
     }
 
     public void iniciar() {
@@ -54,12 +59,12 @@ public class MenuAdministradorController implements ActionListener {
         }
         else if (source == view.btnActualizarCliente) {
             ActualizarClienteView actView = new ActualizarClienteView();
+            // Si el modo es Claro, la ventana se abrirá en blanco automáticamente
             new ActualizarClienteController(actView).iniciar();
         }
         else if (source == view.btnGestionHorarios) {
             JOptionPane.showMessageDialog(view, "Módulo Horarios - Próximamente");
         }
-        // --- AQUÍ ESTÁ EL CAMBIO ---
         else if (source == view.btnResetPassword) {
             mostrarDialogoReset();
         }
@@ -69,10 +74,23 @@ public class MenuAdministradorController implements ActionListener {
         }
     }
 
-    private void mostrarDialogoReset() {
-        ResetPasswordView resetView = new ResetPasswordView(view);
+    private void cambiarTema() {
+        try {
+            if (FlatLaf.isLafDark()) {
+                UIManager.setLookAndFeel(new FlatMacLightLaf());
+            } else {
+                UIManager.setLookAndFeel(new FlatMacDarkLaf());
+            }
+            FlatLaf.updateUI();
+            view.actualizarColores(); // Actualiza la vista principal del admin
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 
-        // Acción del botón Resetear dentro del diálogo
+    private void mostrarDialogoReset() {
+        // ... (código existente del reset) ...
+        ResetPasswordView resetView = new ResetPasswordView(view);
         resetView.btnResetear.addActionListener(evt -> {
             String email = resetView.txtEmail.getText().trim();
             String nombre = resetView.txtNombre.getText().trim();
@@ -99,9 +117,7 @@ public class MenuAdministradorController implements ActionListener {
                 JOptionPane.showMessageDialog(resetView, "Error de archivo: " + ex.getMessage());
             }
         });
-
         resetView.btnCancelar.addActionListener(evt -> resetView.dispose());
-
         resetView.setVisible(true);
     }
 }
