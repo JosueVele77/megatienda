@@ -6,11 +6,7 @@ import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import model.entities.Empleado;
 import model.entities.Usuario;
 import model.logic.EmpleadoLogic;
-import view.ActualizarClienteView;
-import view.MenuAdminView;
-import view.GestionEmpleadosView;
-import view.LoginView;
-import view.ResetPasswordView;
+import view.*;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
@@ -63,7 +59,8 @@ public class MenuAdministradorController implements ActionListener {
             new ActualizarClienteController(actView).iniciar();
         }
         else if (source == view.btnGestionHorarios) {
-            JOptionPane.showMessageDialog(view, "Módulo Horarios - Próximamente");
+            GestionHorarioView horarioView = new GestionHorarioView(view);
+            new GestionHorarioController(horarioView).iniciar();
         }
         else if (source == view.btnResetPassword) {
             mostrarDialogoReset();

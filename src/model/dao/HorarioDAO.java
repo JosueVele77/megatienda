@@ -14,18 +14,25 @@ public class HorarioDAO extends GenericDAO<Horario> {
                 new Converter<Horario>() {
                     @Override
                     public Horario fromLine(String line) {
+                        if (line == null || line.trim().isEmpty()) return null;
                         String[] p = line.split(";");
+                        if (p.length < 5) return null;
                         return new Horario(
-                                p[0],//<- Me guarda el idEmpleado
-                                Turno.valueOf(p[1]), //<- Me guarda el turno
-                                p[2],                       // entrada
-                                p[3]                        // salida
+                                p[0],               // idEmpleado
+                                p[1],               // dia
+                                Turno.valueOf(p[2]),// turno
+                                p[3],               // entrada
+                                p[4]                // salida
                         );
                     }
 
                     @Override
                     public String toLine(Horario h) {
-                        return h.getIdEmpleado() + ";" + h.getTurno().name();
+                        return h.getIdEmpleado() + ";" +
+                                h.getDia() + ";" +
+                                h.getTurno().name() + ";" +
+                                h.getEntrada() + ";" +
+                                h.getSalida();
                     }
 
                     @Override
