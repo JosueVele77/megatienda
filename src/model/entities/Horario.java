@@ -8,7 +8,8 @@ public class Horario {
     private String entrada;
     private String salida;
 
-    public Horario(String idEmpleado, String dia,  Turno turno,
+    // --- CONSTRUCTOR 1 (El que te está dando error) ---
+    public Horario(String idEmpleado, String dia, Turno turno,
                    String entrada, String salida) {
         this.idEmpleado = idEmpleado;
         this.dia = dia;
@@ -17,13 +18,16 @@ public class Horario {
         this.salida = salida;
     }
 
+    // --- CONSTRUCTOR 2 (Para crear vacíos) ---
     public Horario(String idEmpleado, Turno turno) {
         this.idEmpleado = idEmpleado;
+        this.dia = "";
         this.turno = turno;
         this.entrada = "";
         this.salida = "";
     }
 
+    // Getters y Setters
     public String getIdEmpleado() { return idEmpleado; }
     public String getDia() { return dia; }
     public Turno getTurno() { return turno; }

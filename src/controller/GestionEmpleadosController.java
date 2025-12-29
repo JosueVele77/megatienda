@@ -1,9 +1,13 @@
 package controller;
 
 import model.entities.Empleado;
+import model.entities.Horario;
+import model.entities.Turno;
 import model.logic.EmpleadoLogic;
+import model.logic.HorarioLogic;
 import model.logic.ValidacionesLogic;
 import view.GestionEmpleadosView;
+import view.VerHorarioView;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -14,15 +18,18 @@ public class GestionEmpleadosController implements ActionListener {
 
     private final GestionEmpleadosView view;
     private final EmpleadoLogic empleadoLogic;
+    private final HorarioLogic horarioLogic;
     private final ValidacionesLogic validador;
 
     public GestionEmpleadosController(GestionEmpleadosView view) {
         this.view = view;
         this.empleadoLogic = new EmpleadoLogic();
+        this.horarioLogic = new HorarioLogic();
         this.validador = new ValidacionesLogic();
 
         view.btnGuardar.addActionListener(this);
         view.btnLimpiar.addActionListener(this);
+        view.btnVerHorario.addActionListener(this);
 
         cargarTabla();
     }
@@ -33,10 +40,58 @@ public class GestionEmpleadosController implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == view.btnGuardar) {
+        Object source = e.getSource();
+        if (source == view.btnGuardar) {
             guardarEmpleado();
-        } else if (e.getSource() == view.btnLimpiar) {
+        } else if (source == view.btnLimpiar) {
             limpiarFormulario();
+        } else if (source == view.btnVerHorario) { // <--- Lógica botón
+            verHorario();
+        }
+    }
+
+    //Función para visualizar el horario de un empleado
+    private void verHorario() {
+        String cedula = view.txtCedula.getText().trim();
+
+        if (cedula.isEmpty()) {
+            view.mostrarErrorFlotante("Seleccione un empleado de la tabla o ingrese cédula.");
+            return;
+        }
+
+        try {
+            // 1. Buscar Nombre del Empleado
+            String nombre = "Desconocido";
+            List<Empleado> empleados = empleadoLogic.listarTodos();
+            boolean existe = false;
+            for(Empleado emp : empleados) {
+                if(emp.getCedula().equals(cedula)) {
+                    nombre = emp.getNombre();
+                    existe = true;
+                    break;
+                }
+            }
+
+            if (!existe) {
+                view.mostrarErrorFlotante("Empleado no encontrado con esa cédula.");
+                return;
+            }
+
+            // 2. Buscar Horario
+            Horario h = horarioLogic.buscarPorEmpleado(cedula); //<-me sale error
+
+            // --- CAMBIO: Si es nulo, creamos uno por defecto visualmente ---
+            if (h == null) {
+                // Creamos un horario dummy (Sin turno definido, horas vacías)
+                h = new Horario(cedula, Turno.MATUTINO, "", ""); //<-me sale error
+            }
+
+            // 3. Abrir Ventana
+            VerHorarioView horarioView = new VerHorarioView(view, h, nombre);
+            horarioView.setVisible(true);
+
+        } catch (IOException ex) {
+            view.mostrarErrorFlotante("Error al leer datos: " + ex.getMessage());
         }
     }
 

@@ -16,6 +16,7 @@ public class GestionEmpleadosView extends JFrame {
     public JTextField txtDireccion, txtFechaIngreso;
     public JComboBox<String> cmbRol;
     public JButton btnGuardar, btnLimpiar;
+    public JButton btnVerHorario; // Nuevo botón para ver horario
 
     // Tabla
     public JTable tablaEmpleados;
@@ -102,6 +103,15 @@ public class GestionEmpleadosView extends JFrame {
         btnGuardar.setBackground(COLOR_ACCENT);
         btnGuardar.setForeground(Color.WHITE);
         btnGuardar.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // --- NUEVO BOTÓN VER HORARIO ---
+        btnVerHorario = new JButton("Horario");
+        btnVerHorario.setBackground(new Color(255, 193, 7)); // Amarillo/Naranja
+        btnVerHorario.setForeground(Color.BLACK);
+        btnVerHorario.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnVerHorario.putClientProperty(FlatClientProperties.STYLE, "arc: 15; borderWidth: 0; font: bold");
+        btnVerHorario.setToolTipText("Ver horario basado en la cédula ingresada");
+
         // Estilo píldora
         btnGuardar.putClientProperty(FlatClientProperties.STYLE, "arc: 999; borderWidth: 0");
 

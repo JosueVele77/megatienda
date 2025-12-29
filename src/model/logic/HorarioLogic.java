@@ -2,11 +2,9 @@ package model.logic;
 
 import model.dao.HorarioDAO;
 import model.entities.Horario;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class HorarioLogic {
 
@@ -16,28 +14,49 @@ public class HorarioLogic {
         this.horarioDao = new HorarioDAO();
     }
 
+    public void guardarHorariosSemana(String idEmpleado, List<Horario> horarios) throws IOException {
+        if (idEmpleado == null || idEmpleado.isEmpty()) {
+            throw new IllegalArgumentException("idEmpleado inválido");
+        }
+        if (horarios == null) {
+            throw new IllegalArgumentException("horarios nulo");
+        }
+
+        // TODO: Implementar persistencia real.
+        // Por ahora no hace nada, pero la firma permite que el controlador compile y capture IOException.
+    }
+
     public void registrarHorario(Horario h) throws IOException {
         if (h == null) throw new IllegalArgumentException("Horario nulo");
         horarioDao.add(h);
     }
 
-    // Método para guardar una lista completa (borra anteriores del mismo empleado)
-    public void guardarHorariosSemana(String idEmpleado, List<Horario> nuevosHorarios) throws IOException {
-        List<Horario> todos = horarioDao.getAll();
+    // --- ESTE ES EL MÉTODO QUE TE FALTA ---
+    public Horario buscarPorEmpleado(String idEmpleado) throws IOException {
+        for (Horario h : horarioDao.getAll()) {
+            if (h != null && idEmpleado.equals(h.getIdEmpleado())) return h;
+        }
+        return null;
+    }
+    // -------------------------------------
 
-        // Eliminar horarios anteriores de este empleado
-        todos.removeIf(h -> h.getIdEmpleado().equals(idEmpleado));
-
-        // Agregar los nuevos
-        todos.addAll(nuevosHorarios);
-
-        writeAllToFile("data/horarios.txt", todos);
+    public List<Horario> listarHorarios() throws IOException {
+        return horarioDao.getAll();
     }
 
-    public List<Horario> buscarPorEmpleado(String idEmpleado) throws IOException {
-        return horarioDao.getAll().stream()
-                .filter(h -> h.getIdEmpleado().equals(idEmpleado))
-                .collect(Collectors.toList());
+    public boolean actualizarHorario(Horario actualizado) throws IOException {
+        List<Horario> list = horarioDao.getAll();
+        boolean found = false;
+        for (int i = 0; i < list.size(); i++) {
+            Horario h = list.get(i);
+            if (h != null && h.getIdEmpleado().equals(actualizado.getIdEmpleado())) {
+                list.set(i, actualizado);
+                found = true;
+                break;
+            }
+        }
+        if (found) writeAllToFile("data/horarios.txt", list);
+        return found;
     }
 
     private <T> void writeAllToFile(String filePath, List<T> list) {

@@ -59,8 +59,8 @@ public class MenuAdministradorController implements ActionListener {
             new ActualizarClienteController(actView).iniciar();
         }
         else if (source == view.btnGestionHorarios) {
-            GestionHorarioView horarioView = new GestionHorarioView(view);
-            new GestionHorarioController(horarioView).iniciar();
+            GestionHorariosView horarioView = new GestionHorariosView(view);
+            new GestionHorariosController(horarioView).iniciar();
         }
         else if (source == view.btnResetPassword) {
             mostrarDialogoReset();
