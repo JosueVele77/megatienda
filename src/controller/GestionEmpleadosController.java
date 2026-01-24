@@ -50,48 +50,51 @@ public class GestionEmpleadosController implements ActionListener {
         }
     }
 
-    //Función para visualizar el horario de un empleado
+    // --- LÓGICA PARA VER EL HORARIO ---
     private void verHorario() {
+        // 1. Obtener la cédula del campo de texto
         String cedula = view.txtCedula.getText().trim();
 
         if (cedula.isEmpty()) {
-            view.mostrarErrorFlotante("Seleccione un empleado de la tabla o ingrese cédula.");
+            view.mostrarErrorFlotante("Por favor, ingrese una cédula o seleccione un empleado.");
             return;
         }
 
         try {
-            // 1. Buscar Nombre del Empleado
-            String nombre = "Desconocido";
+            // 2. Buscar si el empleado existe (para obtener su nombre)
+            String nombreEmpleado = "Desconocido";
             List<Empleado> empleados = empleadoLogic.listarTodos();
             boolean existe = false;
+
             for(Empleado emp : empleados) {
                 if(emp.getCedula().equals(cedula)) {
-                    nombre = emp.getNombre();
+                    nombreEmpleado = emp.getNombre();
                     existe = true;
                     break;
                 }
             }
 
             if (!existe) {
-                view.mostrarErrorFlotante("Empleado no encontrado con esa cédula.");
+                view.mostrarErrorFlotante("No se encontró ningún empleado con la cédula: " + cedula);
                 return;
             }
 
-            // 2. Buscar Horario
-            Horario h = horarioLogic.buscarPorEmpleado(cedula); //<-me sale error
+            // 3. Buscar el Horario (Ahora sí funciona porque actualizamos HorarioLogic)
+            Horario h = horarioLogic.buscarPorEmpleado(cedula);
 
-            // --- CAMBIO: Si es nulo, creamos uno por defecto visualmente ---
+            // 4. Si no tiene horario, crear uno "Default" visual (sin guardar en BD)
             if (h == null) {
-                // Creamos un horario dummy (Sin turno definido, horas vacías)
-                h = new Horario(cedula, Turno.MATUTINO, "", ""); //<-me sale error
+                // Ahora sí funciona porque actualizamos el constructor de Horario
+                h = new Horario(cedula, Turno.MATUTINO, "", "");
+                view.mostrarExitoFlotante("Este empleado no tiene horario asignado. Se muestra vacío.");
             }
 
-            // 3. Abrir Ventana
-            VerHorarioView horarioView = new VerHorarioView(view, h, nombre);
-            horarioView.setVisible(true);
+            // 5. Abrir la ventana de Visualización
+            VerHorarioView visualizador = new VerHorarioView(view, h, nombreEmpleado);
+            visualizador.setVisible(true);
 
         } catch (IOException ex) {
-            view.mostrarErrorFlotante("Error al leer datos: " + ex.getMessage());
+            view.mostrarErrorFlotante("Error al consultar datos: " + ex.getMessage());
         }
     }
 

@@ -98,7 +98,8 @@ public class GestionHorariosController implements ActionListener {
         }
 
         try {
-            Horario nuevoHorario = new Horario(emp.getCedula(), turno, entrada, salida);
+            // Agregamos "" en el segundo parámetro para el campo 'dia'
+            Horario nuevoHorario = new Horario(emp.getCedula(), "", turno, entrada, salida);
 
             // Verificar si ya existe para actualizar o crear
             Horario existente = horarioLogic.buscarPorEmpleado(emp.getCedula());

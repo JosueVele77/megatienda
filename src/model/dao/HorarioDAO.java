@@ -1,45 +1,52 @@
 package model.dao;
 
-import libgeneric.Converter;
-import libgeneric.GenericDAO;
-import libgeneric.GenericFile;
 import model.entities.Horario;
 import model.entities.Turno;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
-public class HorarioDAO extends GenericDAO<Horario> {
+public class HorarioDAO {
+    private static final String FILE_PATH = "data/horarios.txt";
 
-    public HorarioDAO() {
-        super(new GenericFile<>(
-                "data/horarios.txt",
-                new Converter<Horario>() {
-                    @Override
-                    public Horario fromLine(String line) {
-                        if (line == null || line.trim().isEmpty()) return null;
-                        String[] p = line.split(";");
-                        if (p.length < 5) return null;
-                        return new Horario(
-                                p[0],               // idEmpleado
-                                p[1],               // dia
-                                Turno.valueOf(p[2]),// turno
-                                p[3],               // entrada
-                                p[4]                // salida
-                        );
-                    }
+    public List<Horario> getAll() throws IOException {
+        List<Horario> horarios = new ArrayList<>();
+        File file = new File(FILE_PATH);
+        if (!file.exists()) return horarios;
 
-                    @Override
-                    public String toLine(Horario h) {
-                        return h.getIdEmpleado() + ";" +
-                                h.getDia() + ";" +
-                                h.getTurno().name() + ";" +
-                                h.getEntrada() + ";" +
-                                h.getSalida();
-                    }
-
-                    @Override
-                    public boolean match(Horario h, String... args) {
-                        return h.getIdEmpleado().equals(args[0]);
-                    }
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(";");
+                // Verificamos que tenga 5 partes (Cédula, Día, Turno, Entrada, Salida)
+                if (parts.length == 5) {
+                    Horario h = new Horario(
+                            parts[0],                   // idEmpleado
+                            parts[1],                   // dia
+                            Turno.valueOf(parts[2]),    // turno
+                            parts[3],                   // entrada
+                            parts[4]                    // salida
+                    );
+                    horarios.add(h);
                 }
-        ));
+            }
+        }
+        return horarios;
+    }
+
+    public void add(Horario horario) throws IOException {
+        // true para 'append' (agregar al final sin borrar lo anterior)
+        try (PrintWriter pw = new PrintWriter(new FileWriter(FILE_PATH, true))) {
+            pw.println(horario.toString());
+        }
+    }
+
+    // Método para reescribir toda la lista (usado al actualizar/eliminar)
+    public void saveAll(List<Horario> lista) throws IOException {
+        try (PrintWriter pw = new PrintWriter(new FileWriter(FILE_PATH, false))) {
+            for (Horario h : lista) {
+                pw.println(h.toString());
+            }
+        }
     }
 }

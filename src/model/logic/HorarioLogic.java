@@ -31,16 +31,20 @@ public class HorarioLogic {
         horarioDao.add(h);
     }
 
-    // --- ESTE ES EL MÉTODO QUE TE FALTA ---
-    public Horario buscarPorEmpleado(String idEmpleado) throws IOException {
-        for (Horario h : horarioDao.getAll()) {
-            if (h != null && idEmpleado.equals(h.getIdEmpleado())) return h;
+    // --- ESTE ES EL MÉTODO QUE FALTABA ---
+    public Horario buscarPorEmpleado(String cedula) throws IOException {
+        List<Horario> lista = horarioDao.getAll();
+        for (Horario h : lista) {
+            // Compara si la cédula del horario coincide con la buscada
+            if (h != null && h.getIdEmpleado().equals(cedula)) {
+                return h;
+            }
         }
-        return null;
+        return null; // Retorna null si no encuentra nada (el controlador manejará esto)
     }
     // -------------------------------------
 
-    public List<Horario> listarHorarios() throws IOException {
+    public List<Horario> listarTodos() throws IOException {
         return horarioDao.getAll();
     }
 
