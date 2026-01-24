@@ -63,10 +63,13 @@ public class MenuAdministradorController implements ActionListener {
             ActualizarClienteView actView = new ActualizarClienteView();
             new ActualizarClienteController(actView).iniciar();
         }
+        // --- AQUÍ ESTABA EL ERROR: AHORA LLAMAMOS A LA VERSIÓN SINGULAR (LA NUEVA) ---
         else if (source == view.btnGestionHorarios) {
-            GestionHorariosView horarioView = new GestionHorariosView(view);
-            new GestionHorariosController(horarioView).iniciar();
+            // Usamos GestionHorarioView (Singular), no GestionHorariosView (Plural)
+            GestionHorarioView horarioView = new GestionHorarioView(view);
+            new GestionHorarioController(horarioView).iniciar();
         }
+        // ----------------------------------------------------------------------------
         else if (source == view.btnResetPassword) {
             mostrarDialogoReset();
         }
@@ -75,7 +78,6 @@ public class MenuAdministradorController implements ActionListener {
             new LoginView().setVisible(true);
         }
         else if (source == view.btnVerHorario) {
-            // Llamar a la función que sí quieres usar
             verHorarioEmpleado();
         }
     }
@@ -88,14 +90,13 @@ public class MenuAdministradorController implements ActionListener {
                 UIManager.setLookAndFeel(new FlatMacDarkLaf());
             }
             FlatLaf.updateUI();
-            view.actualizarColores(); // Actualiza la vista principal del admin
+            view.actualizarColores();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
     }
 
     private void mostrarDialogoReset() {
-        // ... (código existente del reset) ...
         ResetPasswordView resetView = new ResetPasswordView(view);
         resetView.btnResetear.addActionListener(evt -> {
             String email = resetView.txtEmail.getText().trim();
@@ -132,13 +133,10 @@ public class MenuAdministradorController implements ActionListener {
         if (cedula == null || cedula.trim().isEmpty()) return;
 
         try {
-            // 1. Buscar si tiene horarios
             List<Horario> lista = horarioLogic.obtenerHorarioEmpleado(cedula);
 
-            // 2. Buscar nombre del empleado (opcional, para el título)
-            // (Puedes usar tu EmpleadoLogic.buscarPorCedula que creamos antes)
             String nombre = "Empleado (" + cedula + ")";
-            model.entities.Empleado emp = new model.logic.EmpleadoLogic().buscarPorCedula(cedula);
+            Empleado emp = empleadoLogic.buscarPorCedula(cedula);
             if (emp != null) nombre = emp.getNombre();
 
             if (lista.isEmpty()) {

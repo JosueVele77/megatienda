@@ -2,8 +2,8 @@ package view;
 
 import model.entities.Empleado;
 import model.entities.Turno;
-
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,22 +21,20 @@ public class GestionHorarioView extends JDialog {
     }
 
     private void initComponents() {
-        setSize(700, 750); // Un poco más alto para que quepan los 5 días cómodamente
+        setSize(700, 750);
         setLocationRelativeTo(getParent());
         setLayout(new BorderLayout());
 
-        // --- 1. HEADER (SOLUCIÓN MODO OSCURO) ---
+        // HEADER
         JPanel pnlHeader = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 20));
-        pnlHeader.setBackground(new Color(60, 63, 65)); // Fondo Gris Oscuro
+        pnlHeader.setBackground(new Color(60, 63, 65));
 
         JLabel lblTitulo = new JLabel("Seleccionar Empleado:");
         lblTitulo.setFont(new Font("SansSerif", Font.BOLD, 14));
-        lblTitulo.setForeground(Color.WHITE); // Letras BLANCAS para que se vean
+        lblTitulo.setForeground(Color.WHITE);
 
         cmbEmpleados = new JComboBox<>();
         cmbEmpleados.setPreferredSize(new Dimension(350, 30));
-
-        // Renderizador para ver: ROL | Nombre | Cédula
         cmbEmpleados.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -52,30 +50,29 @@ public class GestionHorarioView extends JDialog {
         pnlHeader.add(lblTitulo);
         pnlHeader.add(cmbEmpleados);
 
-        // --- 2. DÍAS (SOLUCIÓN 5 DÍAS) ---
+        // DÍAS
         JPanel pnlDias = new JPanel();
         pnlDias.setLayout(new BoxLayout(pnlDias, BoxLayout.Y_AXIS));
         pnlDias.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
 
-        // Arreglo fijo de Lunes a Viernes
         String[] dias = {"LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES"};
 
         for (String dia : dias) {
             FilaDia fila = new FilaDia(dia);
             pnlDias.add(fila);
-            pnlDias.add(Box.createVerticalStrut(10)); // Espacio entre filas
+            pnlDias.add(Box.createVerticalStrut(10));
             filasDias.put(dia, fila);
         }
 
         JScrollPane scroll = new JScrollPane(pnlDias);
         scroll.setBorder(null);
 
-        // --- 3. FOOTER ---
+        // FOOTER
         JPanel pnlFooter = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
-        pnlFooter.setBackground(new Color(60, 63, 65)); // Fondo oscuro también abajo
+        pnlFooter.setBackground(new Color(60, 63, 65));
 
         btnGuardar = new JButton("GUARDAR ASIGNACIÓN");
-        btnGuardar.setBackground(new Color(40, 167, 69)); // Verde
+        btnGuardar.setBackground(new Color(40, 167, 69));
         btnGuardar.setForeground(Color.WHITE);
         btnGuardar.setPreferredSize(new Dimension(200, 40));
         btnGuardar.setFont(new Font("SansSerif", Font.BOLD, 14));
@@ -91,7 +88,7 @@ public class GestionHorarioView extends JDialog {
         add(pnlFooter, BorderLayout.SOUTH);
     }
 
-    // Clase interna para cada fila (Día)
+    // Java
     public class FilaDia extends JPanel {
         public String nombreDia;
         public JComboBox<Turno> cmbTurno;
@@ -100,46 +97,68 @@ public class GestionHorarioView extends JDialog {
 
         public FilaDia(String dia) {
             this.nombreDia = dia;
-            setLayout(new GridLayout(1, 4, 15, 0)); // Grid de 4 columnas
 
-            // Borde con título del día
-            setBorder(BorderFactory.createTitledBorder(
-                    BorderFactory.createLineBorder(Color.GRAY),
+            Color fondoBase = UIManager.getColor("Panel.background");
+            if (fondoBase == null) {
+                fondoBase = new Color(43, 43, 43); // Fallback para modo oscuro
+            }
+            setBackground(fondoBase);
+            setOpaque(true);
+
+            Color colorContraste = obtenerColorContraste(fondoBase);
+
+            setLayout(new GridLayout(1, 4, 15, 0));
+            TitledBorder border = BorderFactory.createTitledBorder(
+                    BorderFactory.createLineBorder(colorContraste.darker()),
                     dia,
-                    0,
-                    0,
-                    new Font("SansSerif", Font.BOLD, 12)
-                    // Nota: FlatLaf maneja el color del título automáticamente
-            ));
+                    TitledBorder.DEFAULT_JUSTIFICATION,
+                    TitledBorder.DEFAULT_POSITION,
+                    new Font("SansSerif", Font.BOLD, 12),
+                    colorContraste
+            );
+            setBorder(border);
 
             cmbTurno = new JComboBox<>(Turno.values());
+            cmbTurno.setBackground(fondoBase);
+            cmbTurno.setForeground(colorContraste);
 
-            // Labels grandes y claros
-            lblEntrada = crearLabelHora("07:00");
-            lblSalida = crearLabelHora("15:00");
+            lblEntrada = crearLabelHora("07:00", colorContraste);
+            lblSalida = crearLabelHora("15:00", colorContraste);
 
-            // Panelitos para etiquetas
-            add(new JLabel("Turno:"));
+            add(crearLabelSimple("Turno:", colorContraste));
             add(cmbTurno);
-            add(crearPanelHora("Inicio:", lblEntrada));
-            add(crearPanelHora("Fin:", lblSalida));
+            add(crearPanelHora("Inicio:", lblEntrada, fondoBase, colorContraste));
+            add(crearPanelHora("Fin:", lblSalida, fondoBase, colorContraste));
         }
 
-        private JLabel crearLabelHora(String texto) {
+        private Color obtenerColorContraste(Color fondo) {
+            double lum = 0.2126 * fondo.getRed() + 0.7152 * fondo.getGreen() + 0.0722 * fondo.getBlue();
+            return lum < 140 ? Color.WHITE : Color.BLACK;
+        }
+
+        private JLabel crearLabelSimple(String texto, Color color) {
             JLabel lbl = new JLabel(texto);
-            lbl.setFont(new Font("Monospaced", Font.BOLD, 14));
-            lbl.setHorizontalAlignment(SwingConstants.CENTER);
-            lbl.setForeground(new Color(0, 102, 204)); // Azul para resaltar la hora
+            lbl.setForeground(color);
             return lbl;
         }
 
-        private JPanel crearPanelHora(String titulo, JLabel lblHora) {
-            JPanel p = new JPanel(new BorderLayout());
-            JLabel title = new JLabel(titulo);
-            title.setFont(new Font("SansSerif", Font.PLAIN, 10));
-            p.add(title, BorderLayout.NORTH);
-            p.add(lblHora, BorderLayout.CENTER);
-            return p;
+        private JLabel crearLabelHora(String texto, Color color) {
+            JLabel lbl = new JLabel(texto);
+            lbl.setFont(new Font("Monospaced", Font.BOLD, 14));
+            lbl.setHorizontalAlignment(SwingConstants.CENTER);
+            lbl.setForeground(color);
+            return lbl;
+        }
+
+        private JPanel crearPanelHora(String titulo, JLabel lblHora, Color fondo, Color textoColor) {
+            JPanel panel = new JPanel(new BorderLayout());
+            panel.setOpaque(false);
+            JLabel lblTitulo = new JLabel(titulo);
+            lblTitulo.setFont(new Font("SansSerif", Font.PLAIN, 10));
+            lblTitulo.setForeground(textoColor);
+            panel.add(lblTitulo, BorderLayout.NORTH);
+            panel.add(lblHora, BorderLayout.CENTER);
+            return panel;
         }
     }
 }
