@@ -36,12 +36,9 @@ public class GestionHorarioController implements ActionListener {
     private void cargarEmpleados() {
         try {
             view.cmbEmpleados.removeAllItems();
-
-            // --- CORRECCIÓN: Usamos .listarTodos() ---
             for (Empleado e : empleadoLogic.listarTodos()) {
                 view.cmbEmpleados.addItem(e);
             }
-
         } catch (IOException e) {
             JOptionPane.showMessageDialog(view, "Error cargando empleados: " + e.getMessage());
         }
@@ -51,30 +48,36 @@ public class GestionHorarioController implements ActionListener {
         view.btnGuardar.addActionListener(this);
         view.btnCancelar.addActionListener(e -> view.dispose());
 
-        // Agregar listener a cada combo de día para actualizar horas automáticamente
+        // Listener para CADA fila de día (Lunes a Viernes)
         for (GestionHorarioView.FilaDia fila : view.filasDias.values()) {
+            // Cuando cambian el item del combo box...
             fila.cmbTurno.addActionListener(e -> actualizarHoras(fila));
-            // Actualizar inicial para que se muestren las horas del turno por defecto
+
+            // Llamada inicial para que aparezcan las horas del primer elemento por defecto
             actualizarHoras(fila);
         }
     }
 
+    // --- AQUÍ ESTÁ LA LÓGICA DE LAS HORAS AUTOMÁTICAS ---
     private void actualizarHoras(GestionHorarioView.FilaDia fila) {
         Turno t = (Turno) fila.cmbTurno.getSelectedItem();
         if (t != null) {
             String[] horas = obtenerHorasPorTurno(t);
+            // Actualizamos los Labels visualmente
             fila.lblEntrada.setText(horas[0]);
             fila.lblSalida.setText(horas[1]);
         }
     }
 
     private String[] obtenerHorasPorTurno(Turno t) {
+        // Matutino(07:00 – 15:00), Vespertino(13:00 – 21:00),
+        // Nocturno(18:00 – 00:00) y Madrugada(23:00 – 07:00).
         switch (t) {
-            case MATUTINO: return new String[]{"07:00", "15:00"};
-            case VESPERTINO: return new String[]{"13:00", "21:00"};
-            case NOCTURNO: return new String[]{"18:00", "00:00"};
+            case MATUTINO:  return new String[]{"07:00", "15:00"};
+            case VESPERTINO:return new String[]{"13:00", "21:00"};
+            case NOCTURNO:  return new String[]{"18:00", "00:00"};
             case MADRUGADA: return new String[]{"23:00", "07:00"};
-            default: return new String[]{"00:00", "00:00"};
+            default:        return new String[]{"00:00", "00:00"};
         }
     }
 
@@ -93,26 +96,29 @@ public class GestionHorarioController implements ActionListener {
         }
 
         List<Horario> horariosSemana = new ArrayList<>();
-
-        // Recorrer los 5 días (orden fijo)
         String[] ordenDias = {"LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES"};
 
+        // Recolectamos la data de la vista
         for (String dia : ordenDias) {
             GestionHorarioView.FilaDia fila = view.filasDias.get(dia);
+
             Turno turnoSel = (Turno) fila.cmbTurno.getSelectedItem();
             String entrada = fila.lblEntrada.getText();
             String salida = fila.lblSalida.getText();
 
-            // Creamos el horario para ese día
+            // Creamos objeto Horario
             horariosSemana.add(new Horario(emp.getCedula(), dia, turnoSel, entrada, salida));
         }
 
         try {
+            // Guardamos usando el método que REEMPLAZA los datos viejos
             horarioLogic.guardarHorariosSemana(emp.getCedula(), horariosSemana);
-            JOptionPane.showMessageDialog(view, "Horarios asignados correctamente para: " + emp.getNombre());
+
+            JOptionPane.showMessageDialog(view, "Horario asignado exitosamente a: " + emp.getNombre());
             view.dispose();
+
         } catch (IOException ex) {
-            JOptionPane.showMessageDialog(view, "Error al guardar: " + ex.getMessage());
+            JOptionPane.showMessageDialog(view, "Error al guardar en archivo: " + ex.getMessage());
             ex.printStackTrace();
         }
     }

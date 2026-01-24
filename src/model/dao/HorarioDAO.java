@@ -44,15 +44,16 @@ public class HorarioDAO {
 
     // --- NUEVO: Actualizar (Borrar viejos + Guardar nuevos) ---
     public void guardarSemanaCompleta(String cedula, List<Horario> nuevosHorarios) throws IOException {
+        // 1. Leemos TODO lo que hay en el archivo
         List<Horario> todos = getAll();
 
-        // 1. Eliminamos todos los horarios previos de este empleado
+        // 2. Borramos los horarios viejos de ESTE empleado específico
         todos.removeIf(h -> h.getIdEmpleado().equals(cedula));
 
-        // 2. Agregamos los nuevos
+        // 3. Agregamos los nuevos 5 días
         todos.addAll(nuevosHorarios);
 
-        // 3. Guardamos todo de nuevo (Sobreescritura)
+        // 4. Sobrescribimos el archivo (false en el FileWriter)
         saveAll(todos);
     }
 
