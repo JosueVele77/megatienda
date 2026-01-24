@@ -128,4 +128,30 @@ public class EmpleadoLogic {
             }
         }
     }
+
+    public Empleado buscarPorCedula(String cedula) {
+        try {
+            // Buscar en Administradores
+            for (Administrador a : adminDao.getAll()) {
+                if (a.getCedula().equals(cedula)) {
+                    return a;
+                }
+            }
+            // Buscar en Vendedores
+            for (Vendedor v : vendedorDao.getAll()) {
+                if (v.getCedula().equals(cedula)) {
+                    return v;
+                }
+            }
+            // Buscar en Bodegueros
+            for (Bodeguero b : bodegueroDao.getAll()) {
+                if (b.getCedula().equals(cedula)) {
+                    return b;
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+    }
+        return null; // No encontrado
+    }
 }

@@ -14,6 +14,7 @@ public class MenuAdminView extends JFrame {
     public JButton btnActualizarCliente;
     public JButton btnGestionHorarios;
     public JButton btnResetPassword;
+    public JButton btnVerHorario;
 
     // Botones inferiores
     public JToggleButton btnTema;
@@ -60,11 +61,13 @@ public class MenuAdminView extends JFrame {
         btnActualizarCliente = crearBotonGrid("Actualizar Cliente", "Modificar datos por cédula", new Color(40, 167, 69));
         btnGestionHorarios = crearBotonGrid("Gestión de Horarios", "Asignar turnos semanales", new Color(255, 193, 7));
         btnResetPassword = crearBotonGrid("Resetear Contraseña", "Restaurar acceso a empleados", new Color(220, 53, 69));
+        btnVerHorario = new JButton("Consultar Horario Empleado");
 
         gridPanel.add(btnGestionEmpleados);
         gridPanel.add(btnActualizarCliente);
         gridPanel.add(btnGestionHorarios);
         gridPanel.add(btnResetPassword);
+        gridPanel.add(btnVerHorario);
 
         // --- 3. FOOTER (MODIFICADO: Vertical Stack a la derecha) ---
 
@@ -93,6 +96,7 @@ public class MenuAdminView extends JFrame {
         btnTema.setFocusPainted(false);
         btnTema.setIcon(new ToggleSwitchIcon(false));
         btnTema.setSelectedIcon(new ToggleSwitchIcon(true));
+        btnVerHorario.setPreferredSize(new Dimension(200, 40));
 
         pnlTema.add(lblTemaTxt);
         pnlTema.add(btnTema);

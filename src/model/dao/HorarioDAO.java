@@ -5,6 +5,7 @@ import model.entities.Turno;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors; // Importante para filtrar
 
 public class HorarioDAO {
     private static final String FILE_PATH = "data/horarios.txt";
@@ -18,7 +19,7 @@ public class HorarioDAO {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split(";");
-                // Verificamos que tenga 5 partes (Cédula, Día, Turno, Entrada, Salida)
+                // Validamos que tenga la estructura correcta (5 partes)
                 if (parts.length == 5) {
                     Horario h = new Horario(
                             parts[0],                   // idEmpleado
@@ -34,14 +35,27 @@ public class HorarioDAO {
         return horarios;
     }
 
-    public void add(Horario horario) throws IOException {
-        // true para 'append' (agregar al final sin borrar lo anterior)
-        try (PrintWriter pw = new PrintWriter(new FileWriter(FILE_PATH, true))) {
-            pw.println(horario.toString());
-        }
+    // --- NUEVO: Obtener solo los de un empleado ---
+    public List<Horario> obtenerPorCedula(String cedula) throws IOException {
+        return getAll().stream()
+                .filter(h -> h.getIdEmpleado().equals(cedula))
+                .collect(Collectors.toList());
     }
 
-    // Método para reescribir toda la lista (usado al actualizar/eliminar)
+    // --- NUEVO: Actualizar (Borrar viejos + Guardar nuevos) ---
+    public void guardarSemanaCompleta(String cedula, List<Horario> nuevosHorarios) throws IOException {
+        List<Horario> todos = getAll();
+
+        // 1. Eliminamos todos los horarios previos de este empleado
+        todos.removeIf(h -> h.getIdEmpleado().equals(cedula));
+
+        // 2. Agregamos los nuevos
+        todos.addAll(nuevosHorarios);
+
+        // 3. Guardamos todo de nuevo (Sobreescritura)
+        saveAll(todos);
+    }
+
     public void saveAll(List<Horario> lista) throws IOException {
         try (PrintWriter pw = new PrintWriter(new FileWriter(FILE_PATH, false))) {
             for (Horario h : lista) {
@@ -49,4 +63,17 @@ public class HorarioDAO {
             }
         }
     }
+
+    // Java
+    public void add(Horario h) throws IOException {
+        if (h == null) throw new IllegalArgumentException("Horario nulo");
+        List<Horario> lista = getAll(); // usa el método existente
+        lista.add(h);
+        try (PrintWriter pw = new PrintWriter(new FileWriter("data/horarios.txt", false))) {
+            for (Horario item : lista) {
+                if (item != null) pw.println(item.toString());
+            }
+        }
+    }
+
 }

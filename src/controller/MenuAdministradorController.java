@@ -4,25 +4,30 @@ import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.themes.FlatMacDarkLaf;
 import com.formdev.flatlaf.themes.FlatMacLightLaf;
 import model.entities.Empleado;
+import model.entities.Horario;
 import model.entities.Usuario;
 import model.logic.EmpleadoLogic;
+import model.logic.HorarioLogic;
 import view.*;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.List;
 
 public class MenuAdministradorController implements ActionListener {
 
     private final MenuAdminView view;
     private final Usuario admin;
     private final EmpleadoLogic empleadoLogic;
+    private HorarioLogic horarioLogic;
 
     public MenuAdministradorController(MenuAdminView view, Usuario admin) {
         this.view = view;
         this.admin = admin;
         this.empleadoLogic = new EmpleadoLogic();
+        this.horarioLogic = new HorarioLogic();
 
         String nombreMostrar = admin.getUsuario();
         if (admin instanceof Empleado) {
@@ -36,6 +41,7 @@ public class MenuAdministradorController implements ActionListener {
         this.view.btnGestionHorarios.addActionListener(this);
         this.view.btnResetPassword.addActionListener(this);
         this.view.btnSalir.addActionListener(this);
+        this.view.btnVerHorario.addActionListener(this);
 
         // Listener Tema
         this.view.btnTema.addActionListener(e -> cambiarTema());
@@ -55,7 +61,6 @@ public class MenuAdministradorController implements ActionListener {
         }
         else if (source == view.btnActualizarCliente) {
             ActualizarClienteView actView = new ActualizarClienteView();
-            // Si el modo es Claro, la ventana se abrirá en blanco automáticamente
             new ActualizarClienteController(actView).iniciar();
         }
         else if (source == view.btnGestionHorarios) {
@@ -68,6 +73,10 @@ public class MenuAdministradorController implements ActionListener {
         else if (source == view.btnSalir) {
             view.dispose();
             new LoginView().setVisible(true);
+        }
+        else if (source == view.btnVerHorario) {
+            // Llamar a la función que sí quieres usar
+            verHorarioEmpleado();
         }
     }
 
@@ -116,5 +125,31 @@ public class MenuAdministradorController implements ActionListener {
         });
         resetView.btnCancelar.addActionListener(evt -> resetView.dispose());
         resetView.setVisible(true);
+    }
+
+    private void verHorarioEmpleado() {
+        String cedula = JOptionPane.showInputDialog(view, "Ingrese Cédula del Empleado:");
+        if (cedula == null || cedula.trim().isEmpty()) return;
+
+        try {
+            // 1. Buscar si tiene horarios
+            List<Horario> lista = horarioLogic.obtenerHorarioEmpleado(cedula);
+
+            // 2. Buscar nombre del empleado (opcional, para el título)
+            // (Puedes usar tu EmpleadoLogic.buscarPorCedula que creamos antes)
+            String nombre = "Empleado (" + cedula + ")";
+            model.entities.Empleado emp = new model.logic.EmpleadoLogic().buscarPorCedula(cedula);
+            if (emp != null) nombre = emp.getNombre();
+
+            if (lista.isEmpty()) {
+                JOptionPane.showMessageDialog(view, "Este empleado no tiene horarios asignados.");
+            } else {
+                VerHorarioView v = new VerHorarioView(view, lista, nombre);
+                v.setVisible(true);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(view, "Error: " + ex.getMessage());
+        }
     }
 }

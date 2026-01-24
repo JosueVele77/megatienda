@@ -12,6 +12,7 @@ import view.VerHorarioView;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 
 public class GestionEmpleadosController implements ActionListener {
@@ -90,7 +91,7 @@ public class GestionEmpleadosController implements ActionListener {
             }
 
             // 5. Abrir la ventana de Visualización
-            VerHorarioView visualizador = new VerHorarioView(view, h, nombreEmpleado);
+            VerHorarioView visualizador = new VerHorarioView(view, Collections.singletonList(h), nombreEmpleado);
             visualizador.setVisible(true);
 
         } catch (IOException ex) {

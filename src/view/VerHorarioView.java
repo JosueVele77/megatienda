@@ -5,89 +5,114 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public class VerHorarioView extends JDialog {
 
-    public VerHorarioView(Frame owner, Horario horario, String nombreEmpleado) {
-        super(owner, "Visualización de Horario", true);
-        setSize(900, 600);
+    private Map<String, Horario> mapaHorarios;
+
+    public VerHorarioView(Frame owner, List<Horario> horariosSemana, String nombreEmpleado) {
+        super(owner, "Visualización de Horario Semanal", true);
+        setSize(1000, 650);
         setLocationRelativeTo(owner);
         setLayout(new BorderLayout());
 
-        // 1. Cabecera con datos del empleado
-        JPanel header = new JPanel(new GridLayout(2, 1));
-        header.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-        header.setBackground(new Color(40, 40, 45)); // Fondo oscuro
+        // 1. Procesar datos para acceso rápido
+        mapaHorarios = new HashMap<>();
+        if (horariosSemana != null) {
+            for (Horario h : horariosSemana) {
+                mapaHorarios.put(h.getDia().toUpperCase(), h);
+            }
+        }
 
-        JLabel lblNombre = new JLabel("Empleado: " + nombreEmpleado);
-        lblNombre.setFont(new Font("SansSerif", Font.BOLD, 18));
-        lblNombre.setForeground(Color.WHITE);
+        // 2. Encabezado
+        JPanel pnlHeader = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 15));
+        pnlHeader.setBackground(new Color(50, 50, 50));
+        JLabel lblTitulo = new JLabel("Horario de: " + nombreEmpleado);
+        lblTitulo.setFont(new Font("SansSerif", Font.BOLD, 22));
+        lblTitulo.setForeground(Color.WHITE);
+        pnlHeader.add(lblTitulo);
+        add(pnlHeader, BorderLayout.NORTH);
 
-        JLabel lblDetalle = new JLabel("Turno: " + horario.getTurno() + " | Entrada: " + horario.getEntrada() + " - Salida: " + horario.getSalida());
-        lblDetalle.setFont(new Font("SansSerif", Font.PLAIN, 14));
-        lblDetalle.setForeground(new Color(200, 200, 200));
+        // 3. Modelo de Tabla (Horas vs Días)
+        String[] columnas = {"HORA", "LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES"};
+        DefaultTableModel model = new DefaultTableModel(columnas, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
 
-        header.add(lblNombre);
-        header.add(lblDetalle);
-        add(header, BorderLayout.NORTH);
-
-        // 2. Tabla Gráfica (Horas vs Días)
-        String[] dias = {"Hora", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"};
-        DefaultTableModel model = new DefaultTableModel(dias, 0);
-
-        // Generamos filas de 06:00 a 22:00
-        for (int i = 6; i <= 22; i++) {
-            model.addRow(new Object[]{String.format("%02d:00", i), "", "", "", "", "", "", ""});
+        // Filas de 00:00 a 23:00
+        for (int i = 0; i < 24; i++) {
+            model.addRow(new Object[]{String.format("%02d:00", i), "", "", "", "", ""});
         }
 
         JTable tabla = new JTable(model);
-        tabla.setRowHeight(30);
+        tabla.setRowHeight(25);
         tabla.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 14));
+        tabla.getTableHeader().setBackground(new Color(220, 220, 220));
 
-        // Renderizador para pintar las celdas
+        // 4. Renderizador (Lógica de Colores)
         tabla.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                                                           boolean isSelected, boolean hasFocus, int row, int column) {
+
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
-                // La primera columna es la Hora (gris)
+                // Columna Hora (Gris)
                 if (column == 0) {
-                    c.setBackground(Color.LIGHT_GRAY);
+                    c.setBackground(new Color(240, 240, 240));
                     c.setForeground(Color.BLACK);
-                    setFont(new Font("SansSerif", Font.BOLD, 12));
+                    setHorizontalAlignment(CENTER);
                     return c;
                 }
 
-                // Obtener hora de la fila y compararla con el horario del empleado
-                try {
-                    String horaFilaStr = (String) table.getValueAt(row, 0); // Ej: "08:00"
-                    int horaFila = Integer.parseInt(horaFilaStr.split(":")[0]);
+                // Columnas de Días
+                String diaColumna = table.getColumnName(column);
+                Horario h = mapaHorarios.get(diaColumna);
 
-                    int horaEntrada = Integer.parseInt(horario.getEntrada().split(":")[0]);
-                    int horaSalida = Integer.parseInt(horario.getSalida().split(":")[0]);
+                // Reset por defecto
+                c.setBackground(Color.WHITE);
+                c.setForeground(Color.BLACK);
+                setText("");
 
-                    // Si la fila está dentro del rango de trabajo, pintar de AZUL
-                    if (horaFila >= horaEntrada && horaFila < horaSalida) {
-                        c.setBackground(new Color(59, 130, 246)); // Azul bonito
-                        c.setForeground(Color.WHITE);
-                        setText("TRABAJO");
-                    } else {
-                        c.setBackground(Color.WHITE);
-                        c.setForeground(Color.BLACK);
-                        setText("");
-                    }
-                } catch (Exception e) {
-                    // Si hay error parseando (ej. horario vacío), dejar en blanco
-                    c.setBackground(Color.WHITE);
-                    c.setForeground(Color.BLACK);
-                    setText("");
+                if (h != null) {
+                    try {
+                        int horaFila = Integer.parseInt(table.getValueAt(row, 0).toString().split(":")[0]);
+                        int horaEnt = Integer.parseInt(h.getEntrada().split(":")[0]);
+                        int horaSal = Integer.parseInt(h.getSalida().split(":")[0]);
+
+                        boolean activo = false;
+                        // Turno normal (Ej: 07 a 15)
+                        if (horaEnt < horaSal) {
+                            if (horaFila >= horaEnt && horaFila < horaSal) activo = true;
+                        }
+                        // Turno cruzado (Madrugada: 23 a 07)
+                        else {
+                            if (horaFila >= horaEnt || horaFila < horaSal) activo = true;
+                        }
+
+                        if (activo) {
+                            c.setBackground(new Color(70, 130, 180)); // Azul Acero
+                            c.setForeground(Color.WHITE);
+                            setText(h.getTurno().toString());
+                            setHorizontalAlignment(CENTER);
+                        }
+                    } catch (Exception e) {}
                 }
-
-                setHorizontalAlignment(SwingConstants.CENTER);
                 return c;
             }
         });
 
         add(new JScrollPane(tabla), BorderLayout.CENTER);
+
+        // Botón cerrar
+        JButton btnCerrar = new JButton("Cerrar");
+        btnCerrar.addActionListener(e -> dispose());
+        JPanel pnlSur = new JPanel();
+        pnlSur.add(btnCerrar);
+        add(pnlSur, BorderLayout.SOUTH);
     }
 }

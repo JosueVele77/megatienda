@@ -14,21 +14,17 @@ public class HorarioLogic {
         this.horarioDao = new HorarioDAO();
     }
 
-    public void guardarHorariosSemana(String idEmpleado, List<Horario> horarios) throws IOException {
-        if (idEmpleado == null || idEmpleado.isEmpty()) {
-            throw new IllegalArgumentException("idEmpleado inválido");
-        }
-        if (horarios == null) {
-            throw new IllegalArgumentException("horarios nulo");
-        }
-
-        // TODO: Implementar persistencia real.
-        // Por ahora no hace nada, pero la firma permite que el controlador compile y capture IOException.
-    }
-
     public void registrarHorario(Horario h) throws IOException {
         if (h == null) throw new IllegalArgumentException("Horario nulo");
         horarioDao.add(h);
+    }
+
+    public void guardarHorariosSemana(String cedula, List<Horario> horariosSemana) throws IOException {
+        horarioDao.guardarSemanaCompleta(cedula, horariosSemana);
+    }
+
+    public List<Horario> obtenerHorarioEmpleado(String cedula) throws IOException {
+        return horarioDao.obtenerPorCedula(cedula);
     }
 
     // --- ESTE ES EL MÉTODO QUE FALTABA ---
@@ -77,4 +73,6 @@ public class HorarioLogic {
             }
         }).start();
     }
+
+
 }
