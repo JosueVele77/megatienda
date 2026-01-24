@@ -1,5 +1,6 @@
 package view;
 
+import com.formdev.flatlaf.FlatLaf;
 import model.entities.Horario;
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -29,10 +30,17 @@ public class VerHorarioView extends JDialog {
 
         // 2. Encabezado
         JPanel pnlHeader = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 15));
-        pnlHeader.setBackground(new Color(50, 50, 50));
+        // Adapt header color to theme
+        boolean isDark = FlatLaf.isLafDark();
+        if (isDark) {
+            pnlHeader.setBackground(new Color(50, 50, 50));
+        } else {
+            Color headerBg = UIManager.getColor("Panel.background");
+            pnlHeader.setBackground(headerBg != null ? headerBg : new Color(240, 240, 240));
+        }
         JLabel lblTitulo = new JLabel("Horario de: " + nombreEmpleado);
         lblTitulo.setFont(new Font("SansSerif", Font.BOLD, 22));
-        lblTitulo.setForeground(Color.WHITE);
+        lblTitulo.setForeground(isDark ? Color.WHITE : Color.BLACK);
         pnlHeader.add(lblTitulo);
         add(pnlHeader, BorderLayout.NORTH);
 
@@ -51,7 +59,15 @@ public class VerHorarioView extends JDialog {
         JTable tabla = new JTable(model);
         tabla.setRowHeight(25);
         tabla.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 14));
-        tabla.getTableHeader().setBackground(new Color(220, 220, 220));
+        // Use UIManager colors for table header to adapt to theme
+        Color headerBg = UIManager.getColor("TableHeader.background");
+        Color headerFg = UIManager.getColor("TableHeader.foreground");
+        if (headerBg != null) {
+            tabla.getTableHeader().setBackground(headerBg);
+        }
+        if (headerFg != null) {
+            tabla.getTableHeader().setForeground(headerFg);
+        }
 
         // 4. Renderizador (Lógica de Colores)
         tabla.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
@@ -61,10 +77,18 @@ public class VerHorarioView extends JDialog {
 
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
+                // Detect dark mode
+                boolean isDarkMode = FlatLaf.isLafDark();
+
                 // Columna Hora (Gris)
                 if (column == 0) {
-                    c.setBackground(new Color(240, 240, 240));
-                    c.setForeground(Color.BLACK);
+                    if (isDarkMode) {
+                        c.setBackground(new Color(50, 50, 55));
+                        c.setForeground(Color.WHITE);
+                    } else {
+                        c.setBackground(new Color(240, 240, 240));
+                        c.setForeground(Color.BLACK);
+                    }
                     setHorizontalAlignment(CENTER);
                     return c;
                 }
@@ -73,9 +97,14 @@ public class VerHorarioView extends JDialog {
                 String diaColumna = table.getColumnName(column);
                 Horario h = mapaHorarios.get(diaColumna);
 
-                // Reset por defecto
-                c.setBackground(Color.WHITE);
-                c.setForeground(Color.BLACK);
+                // Reset por defecto - adapt to theme
+                if (isDarkMode) {
+                    c.setBackground(new Color(40, 40, 45));
+                    c.setForeground(new Color(200, 200, 200));
+                } else {
+                    c.setBackground(Color.WHITE);
+                    c.setForeground(Color.BLACK);
+                }
                 setText("");
 
                 if (h != null) {
