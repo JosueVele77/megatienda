@@ -69,6 +69,7 @@ public class VerHorarioView extends JDialog {
                     return c;
                 }
 
+
                 // Columnas de Días
                 String diaColumna = table.getColumnName(column);
                 Horario h = mapaHorarios.get(diaColumna);
