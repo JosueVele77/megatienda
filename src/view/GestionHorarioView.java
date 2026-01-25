@@ -27,11 +27,11 @@ public class GestionHorarioView extends JDialog {
 
         // HEADER
         JPanel pnlHeader = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 20));
-        pnlHeader.setBackground(new Color(60, 63, 65));
+        pnlHeader.setBackground(UIManager.getColor("Panel.background")); // Adaptable
 
         JLabel lblTitulo = new JLabel("Seleccionar Empleado:");
         lblTitulo.setFont(new Font("SansSerif", Font.BOLD, 14));
-        lblTitulo.setForeground(Color.WHITE);
+        lblTitulo.setForeground(UIManager.getColor("Label.foreground")); // Adaptable
 
         cmbEmpleados = new JComboBox<>();
         cmbEmpleados.setPreferredSize(new Dimension(350, 30));
@@ -69,11 +69,14 @@ public class GestionHorarioView extends JDialog {
 
         // FOOTER
         JPanel pnlFooter = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 15));
-        pnlFooter.setBackground(new Color(60, 63, 65));
+        pnlFooter.setBackground(UIManager.getColor("Panel.background")); // Adaptable
 
         btnGuardar = new JButton("GUARDAR ASIGNACIÓN");
         btnGuardar.setBackground(new Color(40, 167, 69));
         btnGuardar.setForeground(Color.WHITE);
+        // Dejar que el Look and Feel maneje los colores para adaptabilidad
+        // btnGuardar.setBackground(new Color(40, 167, 69));
+        // btnGuardar.setForeground(Color.WHITE);
         btnGuardar.setPreferredSize(new Dimension(200, 40));
         btnGuardar.setFont(new Font("SansSerif", Font.BOLD, 14));
 

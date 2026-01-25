@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class VerHorarioView extends JDialog {
 
-    private Map<String, Horario> mapaHorarios;
+    private final Map<String, Horario> mapaHorarios;
 
     public VerHorarioView(Frame owner, List<Horario> horariosSemana, String nombreEmpleado) {
         super(owner, "Visualización de Horario Semanal", true);
@@ -29,10 +29,11 @@ public class VerHorarioView extends JDialog {
 
         // 2. Encabezado
         JPanel pnlHeader = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 15));
-        pnlHeader.setBackground(new Color(50, 50, 50));
+        // Usar colores del UIManager para adaptarse al modo oscuro/claro
+        //pnlHeader.setBackground(UIManager.getColor("Panel.background"));
         JLabel lblTitulo = new JLabel("Horario de: " + nombreEmpleado);
         lblTitulo.setFont(new Font("SansSerif", Font.BOLD, 22));
-        lblTitulo.setForeground(Color.WHITE);
+        lblTitulo.setForeground(UIManager.getColor("Label.foreground"));
         pnlHeader.add(lblTitulo);
         add(pnlHeader, BorderLayout.NORTH);
 
@@ -51,7 +52,8 @@ public class VerHorarioView extends JDialog {
         JTable tabla = new JTable(model);
         tabla.setRowHeight(25);
         tabla.getTableHeader().setFont(new Font("SansSerif", Font.BOLD, 14));
-        tabla.getTableHeader().setBackground(new Color(220, 220, 220));
+        // Dejar que el UIManager maneje el color del header para el modo oscuro
+        // tabla.getTableHeader().setBackground(new Color(220, 220, 220));
 
         // 4. Renderizador (Lógica de Colores)
         tabla.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
@@ -61,23 +63,30 @@ public class VerHorarioView extends JDialog {
 
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
-                // Columna Hora (Gris)
-                if (column == 0) {
-                    c.setBackground(new Color(240, 240, 240));
-                    c.setForeground(Color.BLACK);
-                    setHorizontalAlignment(CENTER);
+                // No establecer colores si la celda está seleccionada para usar los colores de selección del sistema
+                if (isSelected) {
                     return c;
                 }
 
+                // Columna Hora
+                if (column == 0) {
+                    c.setBackground(UIManager.getColor("Panel.background"));
+
+                    // CAMBIO AQUÍ: Usar el color de texto dinámico de la tabla
+                    c.setForeground(UIManager.getColor("Table.foreground"));
+
+                    setHorizontalAlignment(CENTER);
+                    return c;
+                }
 
                 // Columnas de Días
                 String diaColumna = table.getColumnName(column);
                 Horario h = mapaHorarios.get(diaColumna);
 
-                // Reset por defecto
-                c.setBackground(Color.WHITE);
-                c.setForeground(Color.BLACK);
-                setText("");
+                // Reset a colores por defecto del Look and Feel
+                c.setBackground(UIManager.getColor("Table.background"));
+                c.setForeground(UIManager.getColor("Table.foreground"));
+                setText(""); // Limpiar texto por defecto
 
                 if (h != null) {
                     try {
@@ -101,7 +110,9 @@ public class VerHorarioView extends JDialog {
                             setText(h.getTurno().toString());
                             setHorizontalAlignment(CENTER);
                         }
-                    } catch (Exception e) {}
+                    } catch (NumberFormatException | NullPointerException e) {
+                        // Ignorar errores de parseo si los datos son inválidos, la celda quedará en blanco
+                    }
                 }
                 return c;
             }
