@@ -5,8 +5,6 @@ import view.LoginView;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-
-// Importaciones necesarias para el bypass
 import model.dao.AdministradorDAO;
 import model.entities.Administrador;
 import model.logic.PasswordLogic;

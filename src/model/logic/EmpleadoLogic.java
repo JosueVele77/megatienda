@@ -7,10 +7,7 @@ import model.entities.Administrador;
 import model.entities.Bodeguero;
 import model.entities.Empleado;
 import model.entities.Vendedor;
-
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,14 +27,12 @@ public class EmpleadoLogic {
         this.passwordLogic = new PasswordLogic();
     }
 
-    // --- MÉTODOS ACTUALIZADOS PARA RECIBIR 7 PARÁMETROS ---
-
+    // --- REGISTRO (Ya corregido para incluir fecha) ---
     public void registrarAdministrador(String usuario, String password, String nombre, String cedula,
                                        String celular, String direccion, String fecha) throws IOException {
         if (!validator.validarNombre(nombre)) throw new IllegalArgumentException("Nombre inválido");
         if (!validator.validarCedula(cedula)) throw new IllegalArgumentException("Cédula inválida");
 
-        // CORRECCIÓN: Ahora pasamos los 7 datos al constructor
         Administrador a = new Administrador(usuario, passwordLogic.hash(password), nombre, cedula, celular, direccion, fecha);
         adminDao.add(a);
     }
@@ -47,7 +42,6 @@ public class EmpleadoLogic {
         if (!validator.validarNombre(nombre)) throw new IllegalArgumentException("Nombre inválido");
         if (!validator.validarCedula(cedula)) throw new IllegalArgumentException("Cédula inválida");
 
-        // CORRECCIÓN
         Vendedor v = new Vendedor(usuario, passwordLogic.hash(password), nombre, cedula, celular, direccion, fecha);
         vendedorDao.add(v);
     }
@@ -57,101 +51,80 @@ public class EmpleadoLogic {
         if (!validator.validarNombre(nombre)) throw new IllegalArgumentException("Nombre inválido");
         if (!validator.validarCedula(cedula)) throw new IllegalArgumentException("Cédula inválida");
 
-        // CORRECCIÓN
         Bodeguero b = new Bodeguero(usuario, passwordLogic.hash(password), nombre, cedula, celular, direccion, fecha);
         bodegueroDao.add(b);
     }
 
+    // --- LISTAR ---
     public List<Empleado> listarTodos() throws IOException {
         List<Empleado> res = new ArrayList<>();
-        res.addAll((List<Administrador>)(List<?>) adminDao.getAll());
-        res.addAll((List<Vendedor>)(List<?>) vendedorDao.getAll());
-        res.addAll((List<Bodeguero>)(List<?>) bodegueroDao.getAll());
+        // Convertimos las listas específicas a genéricas para unirlas
+        res.addAll(new ArrayList<>(adminDao.getAll()));
+        res.addAll(new ArrayList<>(vendedorDao.getAll()));
+        res.addAll(new ArrayList<>(bodegueroDao.getAll()));
         return res;
     }
 
-    // ... (El resto del código como resetearClave sigue igual) ...
-    // --- NUEVO MÉTODO PARA RESETEAR ---
+    // --- RESETEAR CLAVE (SOLUCIÓN AL PROBLEMA) ---
     public boolean resetearClave(String email, String nombre, String cedula) throws IOException {
+        // La contraseña por defecto será la CÉDULA hasheada
+        String nuevaClaveHash = passwordLogic.hash(cedula);
+
         // 1. Buscar en Administradores
         List<Administrador> admins = adminDao.getAll();
-        for (int i = 0; i < admins.size(); i++) {
-            Administrador a = admins.get(i);
+        for (Administrador a : admins) {
             if (match(a, email, nombre, cedula)) {
-                a.setPassword(passwordLogic.hash(cedula));
-                a.setPrimerIngreso(true);
-                admins.set(i, a);
-                writeList("data/administradores.txt", admins);
-                return true;
+                a.setPassword(nuevaClaveHash);
+                a.setPrimerIngreso(true); // Obligar a cambiar clave
+                return adminDao.update(a); // <--- USA EL UPDATE HÍBRIDO (BD + TXT)
             }
         }
 
         // 2. Buscar en Vendedores
         List<Vendedor> vends = vendedorDao.getAll();
-        for (int i = 0; i < vends.size(); i++) {
-            Vendedor v = vends.get(i);
+        for (Vendedor v : vends) {
             if (match(v, email, nombre, cedula)) {
-                v.setPassword(passwordLogic.hash(cedula));
+                v.setPassword(nuevaClaveHash);
                 v.setPrimerIngreso(true);
-                vends.set(i, v);
-                writeList("data/vendedores.txt", vends);
-                return true;
+                return vendedorDao.update(v); // <--- USA EL UPDATE HÍBRIDO
             }
         }
 
         // 3. Buscar en Bodegueros
         List<Bodeguero> bods = bodegueroDao.getAll();
-        for (int i = 0; i < bods.size(); i++) {
-            Bodeguero b = bods.get(i);
+        for (Bodeguero b : bods) {
             if (match(b, email, nombre, cedula)) {
-                b.setPassword(passwordLogic.hash(cedula));
+                b.setPassword(nuevaClaveHash);
                 b.setPrimerIngreso(true);
-                bods.set(i, b);
-                writeList("data/bodegueros.txt", bods);
-                return true;
+                return bodegueroDao.update(b); // <--- USA EL UPDATE HÍBRIDO
             }
         }
-        return false;
+
+        return false; // No se encontró el usuario
     }
 
     private boolean match(Empleado e, String email, String nombre, String cedula) {
         if (e == null) return false;
-        return e.getUsuario().equalsIgnoreCase(email) &&
-                e.getNombre().equalsIgnoreCase(nombre) &&
-                e.getCedula().equals(cedula);
-    }
-
-    private <T> void writeList(String path, List<T> list) throws IOException {
-        try (PrintWriter pw = new PrintWriter(new FileWriter(path, false))) {
-            for (T item : list) {
-                if (item != null) pw.println(item.toString());
-            }
-        }
+        // Comparamos ignorando mayúsculas y espacios extra
+        return e.getUsuario().trim().equalsIgnoreCase(email.trim()) &&
+                e.getNombre().trim().equalsIgnoreCase(nombre.trim()) &&
+                e.getCedula().trim().equals(cedula.trim());
     }
 
     public Empleado buscarPorCedula(String cedula) {
         try {
-            // Buscar en Administradores
             for (Administrador a : adminDao.getAll()) {
-                if (a.getCedula().equals(cedula)) {
-                    return a;
-                }
+                if (a.getCedula().equals(cedula)) return a;
             }
-            // Buscar en Vendedores
             for (Vendedor v : vendedorDao.getAll()) {
-                if (v.getCedula().equals(cedula)) {
-                    return v;
-                }
+                if (v.getCedula().equals(cedula)) return v;
             }
-            // Buscar en Bodegueros
             for (Bodeguero b : bodegueroDao.getAll()) {
-                if (b.getCedula().equals(cedula)) {
-                    return b;
-                }
+                if (b.getCedula().equals(cedula)) return b;
             }
         } catch (IOException e) {
             e.printStackTrace();
-    }
-        return null; // No encontrado
+        }
+        return null;
     }
 }

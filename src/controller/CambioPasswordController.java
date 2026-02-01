@@ -3,11 +3,14 @@ package controller;
 import model.entities.*;
 import model.logic.*;
 import view.CambioPasswordView;
+// Importamos los DAOs concretos para acceder a sus métodos update
+import model.dao.AdministradorDAO;
+import model.dao.BodegueroDAO;
+import model.dao.VendedorDAO;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 
 public class CambioPasswordController implements ActionListener {
 
@@ -16,10 +19,10 @@ public class CambioPasswordController implements ActionListener {
     private final PasswordLogic passwordLogic;
     private final ValidacionesLogic validador;
 
-    // DAOs
-    private final model.dao.AdministradorDAO adminDao;
-    private final model.dao.VendedorDAO vendDao;
-    private final model.dao.BodegueroDAO bodDao;
+    // DAOs concretos
+    private final AdministradorDAO adminDao;
+    private final VendedorDAO vendDao;
+    private final BodegueroDAO bodDao;
 
     public CambioPasswordController(CambioPasswordView view, Usuario usuario) {
         this.view = view;
@@ -27,9 +30,10 @@ public class CambioPasswordController implements ActionListener {
         this.passwordLogic = new PasswordLogic();
         this.validador = new ValidacionesLogic();
 
-        this.adminDao = new model.dao.AdministradorDAO();
-        this.vendDao = new model.dao.VendedorDAO();
-        this.bodDao = new model.dao.BodegueroDAO();
+        // Inicializamos los DAOs
+        this.adminDao = new AdministradorDAO();
+        this.vendDao = new VendedorDAO();
+        this.bodDao = new BodegueroDAO();
 
         this.view.btnCambiar.addActionListener(this);
     }
@@ -43,91 +47,71 @@ public class CambioPasswordController implements ActionListener {
         String nueva = new String(view.txtNuevaPass.getPassword());
         String confirmar = new String(view.txtConfirmarPass.getPassword());
 
-        // Limpiar bordes rojos previos
+        // Limpiar errores visuales
         view.marcarError(view.txtNuevaPass, false);
         view.marcarError(view.txtConfirmarPass, false);
 
         // --- VALIDACIONES ---
-
-        // 1. Vacíos
         if (nueva.isEmpty() || confirmar.isEmpty()) {
-            if(nueva.isEmpty()) view.marcarError(view.txtNuevaPass, true);
-            if(confirmar.isEmpty()) view.marcarError(view.txtConfirmarPass, true);
+            if (nueva.isEmpty()) view.marcarError(view.txtNuevaPass, true);
+            if (confirmar.isEmpty()) view.marcarError(view.txtConfirmarPass, true);
             view.mostrarErrorToast("Todos los campos son obligatorios.");
             return;
         }
 
-        // 2. Coincidencia
         if (!nueva.equals(confirmar)) {
             view.marcarError(view.txtConfirmarPass, true);
             view.mostrarErrorToast("Las contraseñas no coinciden.");
             return;
         }
 
-        // 3. Fortaleza (Regex) - AHORA YA NO CRASHEARÁ
         if (!validador.validarPasswordSegura(nueva)) {
             view.marcarError(view.txtNuevaPass, true);
             view.mostrarErrorToast("Débil: Use 8+ caracteres, mayúscula y símbolo.");
             return;
         }
 
-        // 4. No repetir la anterior
         if (passwordLogic.compare(nueva, usuario.getPassword())) {
             view.marcarError(view.txtNuevaPass, true);
             view.mostrarErrorToast("No puede usar la misma contraseña anterior.");
             return;
         }
 
-        // --- GUARDAR ---
+        // --- GUARDADO ---
         try {
+            // 1. Actualizamos el objeto en memoria
             String nuevoHash = passwordLogic.hash(nueva);
             usuario.setPassword(nuevoHash);
-            usuario.setPrimerIngreso(false);
+            usuario.setPrimerIngreso(false); // <--- ESTO CAMBIA EL ESTADO
 
             boolean exito = false;
             String rol = usuario.getRol().toUpperCase();
 
+            // 2. Delegamos la persistencia al DAO correspondiente
+            // El DAO se encarga de decidir si guarda en BD, TXT o ambos.
             if ("ADMINISTRADOR".equals(rol)) {
-                actualizarEnArchivo(adminDao, (Administrador) usuario);
-                exito = true;
-            } else if ("VENDEDOR".equals(rol)) {
-                actualizarEnArchivo(vendDao, (Vendedor) usuario);
-                exito = true;
-            } else if ("BODEGUERO".equals(rol)) {
-                actualizarEnArchivo(bodDao, (Bodeguero) usuario);
-                exito = true;
+                exito = adminDao.update((Administrador) usuario);
+            }
+            else if ("VENDEDOR".equals(rol)) {
+                // Asegúrate de implementar el método update en VendedorDAO
+                exito = vendDao.update((Vendedor) usuario);
+            }
+            else if ("BODEGUERO".equals(rol)) {
+                // Asegúrate de implementar el método update en BodegueroDAO
+                exito = bodDao.update((Bodeguero) usuario);
             }
 
             if (exito) {
-                JOptionPane.showMessageDialog(view, "¡Contraseña actualizada con éxito!");
+                JOptionPane.showMessageDialog(view, "¡Contraseña actualizada! Por favor inicie sesión nuevamente.");
                 view.dispose();
+                // Opcional: Cerrar la sesión actual completamente si fuera necesario
+            } else {
+                view.mostrarErrorToast("Error al guardar: No se pudo actualizar la base de datos ni el archivo.");
             }
 
         } catch (Exception ex) {
             view.mostrarErrorToast("Error crítico: " + ex.getMessage());
             ex.printStackTrace();
-        }
-    }
-
-    // (El método actualizarEnArchivo se mantiene igual que en tu versión anterior)
-    private <T extends Usuario> void actualizarEnArchivo(libgeneric.GenericDAO<T> dao, T usuarioActualizado) throws IOException {
-        java.util.List<T> lista = dao.getAll();
-        for (int i = 0; i < lista.size(); i++) {
-            T u = lista.get(i);
-            if (u.getUsuario().equalsIgnoreCase(usuarioActualizado.getUsuario())) {
-                lista.set(i, usuarioActualizado);
-                break;
-            }
-        }
-        String archivoDestino = "";
-        if (usuarioActualizado instanceof Administrador) archivoDestino = "data/administradores.txt";
-        else if (usuarioActualizado instanceof Vendedor) archivoDestino = "data/vendedores.txt";
-        else if (usuarioActualizado instanceof Bodeguero) archivoDestino = "data/bodegueros.txt";
-
-        try (java.io.PrintWriter pw = new java.io.PrintWriter(new java.io.FileWriter(archivoDestino, false))) {
-            for (T item : lista) {
-                pw.println(item.toString());
-            }
         }
     }
 }
