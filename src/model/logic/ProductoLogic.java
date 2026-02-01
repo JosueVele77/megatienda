@@ -3,111 +3,51 @@ package model.logic;
 import model.dao.ProductoDAO;
 import model.entities.Producto;
 
-import java.io.*;
-import java.util.ArrayList;
+import java.io.IOException;
 import java.util.List;
 
 public class ProductoLogic {
 
-    // 1. Declaración de la variable productoDao (Esto es lo que te faltaba o no era visible)
     private final ProductoDAO productoDao;
-    private final ValidacionesLogic validator;
 
     public ProductoLogic() {
         this.productoDao = new ProductoDAO();
-        this.validator = new ValidacionesLogic();
     }
 
     public void registrarProducto(Producto p) throws IOException {
-        if (p.getCodigo() == null || p.getCodigo().trim().isEmpty()) throw new IllegalArgumentException("Código inválido");
-        if (p.getNombre() == null || p.getNombre().trim().isEmpty()) throw new IllegalArgumentException("Nombre inválido");
-        if (p.getPrecio() < 0) throw new IllegalArgumentException("Precio negativo");
-        if (p.getStock() < 0) throw new IllegalArgumentException("Stock negativo");
+        if (p == null) throw new IllegalArgumentException("Producto inválido");
+        // Validaciones extra si quieres...
         productoDao.add(p);
-    }
-
-    public Producto buscarProducto(String codigo) throws IOException {
-        for (Producto p : productoDao.getAll()) {
-            if (p != null && codigo.equals(p.getCodigo())) return p;
-        }
-        return null;
-    }
-
-    // --- AQUÍ ESTÁ EL MÉTODO NUEVO ---
-    public boolean actualizarProducto(Producto actualizado) throws IOException {
-        // Ahora sí reconocerá 'productoDao' porque está declarado arriba
-        List<Producto> list = productoDao.getAll();
-        boolean found = false;
-
-        for (int i = 0; i < list.size(); i++) {
-            Producto p = list.get(i);
-            if (p != null && p.getCodigo().equals(actualizado.getCodigo())) {
-                list.set(i, actualizado);
-                found = true;
-                break;
-            }
-        }
-
-        if (found) {
-            writeAllToFile("data/productos.txt", list);
-        }
-        return found;
-    }
-    // --------------------------------
-
-    public boolean restarStock(String codigo, int cantidad) throws IOException {
-        if (cantidad <= 0) throw new IllegalArgumentException("Cantidad debe ser positiva");
-        List<Producto> list = productoDao.getAll();
-        boolean updated = false;
-        for (int i = 0; i < list.size(); i++) {
-            Producto p = list.get(i);
-            if (p != null && p.getCodigo().equals(codigo)) {
-                if (p.getStock() < cantidad) throw new IllegalStateException("Stock insuficiente");
-                p.setStock(p.getStock() - cantidad);
-                list.set(i, p);
-                updated = true;
-                break;
-            }
-        }
-        if (updated) writeAllToFile("data/productos.txt", list);
-        return updated;
-    }
-
-    public boolean agregarStock(String codigo, int cantidad) throws IOException {
-        if (cantidad <= 0) throw new IllegalArgumentException("Cantidad debe ser positiva");
-        List<Producto> list = productoDao.getAll();
-        boolean updated = false;
-        for (int i = 0; i < list.size(); i++) {
-            Producto p = list.get(i);
-            if (p != null && p.getCodigo().equals(codigo)) {
-                p.setStock(p.getStock() + cantidad);
-                list.set(i, p);
-                updated = true;
-                break;
-            }
-        }
-        if (updated) writeAllToFile("data/productos.txt", list);
-        return updated;
     }
 
     public List<Producto> listarProductos() throws IOException {
         return productoDao.getAll();
     }
 
-    private <T> void writeAllToFile(String filePath, List<T> list) {
-        final List<T> dataSnapshot = new ArrayList<>(list);
-
-        new Thread(() -> {
-            synchronized (this) {
-                try (PrintWriter pw = new PrintWriter(new FileWriter(filePath, false))) {
-                    for (T item : dataSnapshot) {
-                        if (item != null) pw.println(item.toString());
-                    }
-                } catch (IOException e) {
-                    System.err.println("Error guardando productos en background: " + e.getMessage());
-                    e.printStackTrace();
-                }
+    public Producto buscarProducto(String codigo) throws IOException {
+        List<Producto> lista = productoDao.getAll();
+        for (Producto p : lista) {
+            if (p.getCodigo().equals(codigo)) {
+                return p;
             }
-        }).start();
+        }
+        return null;
+    }
+
+    // --- AQUÍ ESTÁ LA CLAVE PARA QUE FUNCIONE LA EDICIÓN ---
+    public boolean actualizarProducto(Producto p) throws IOException {
+        // Llamamos directamente al método update del DAO (que ya arreglamos para SQL y TXT)
+        return productoDao.update(p);
+    }
+
+    // Método para restar stock en ventas
+    public boolean restarStock(String codigo, int cantidad) throws IOException {
+        Producto p = buscarProducto(codigo);
+        if (p != null) {
+            if(p.getStock() < cantidad) return false;
+            p.setStock(p.getStock() - cantidad);
+            return productoDao.update(p);
+        }
+        return false;
     }
 }

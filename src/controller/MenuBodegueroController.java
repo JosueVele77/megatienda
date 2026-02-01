@@ -32,6 +32,7 @@ public class MenuBodegueroController implements ActionListener {
         this.productoLogic = new ProductoLogic();
         this.proveedorLogic = new ProveedorLogic();
 
+        // Mostrar nombre del usuario
         String nombreMostrar = usuario.getUsuario();
         if (usuario instanceof Empleado) {
             nombreMostrar = ((Empleado) usuario).getNombre();
@@ -66,9 +67,7 @@ public class MenuBodegueroController implements ActionListener {
             cl.show(view.pnlContent, "INVENTARIO");
         }
         else if (source == view.btnRegistrarProd) {
-            GestionProductoView regView = new GestionProductoView(view, "Registrar Nuevo Producto");
-            new GestionProductoController(regView).iniciar();
-            cargarInventario();
+            abrirGestionProductos(null); // Null indica modo registro (limpio)
         }
         else if (source == view.btnActualizarProd) {
             actualizarProductoFlow();
@@ -88,6 +87,35 @@ public class MenuBodegueroController implements ActionListener {
         }
     }
 
+    /**
+     * Abre la ventana completa de gestión de productos.
+     * Si 'productoEditar' no es null, pre-carga los datos en el formulario.
+     */
+    private void abrirGestionProductos(Producto productoEditar) {
+        // Usamos la nueva vista que incluye tabla y formulario
+        GestionProductoView gpView = new GestionProductoView(view, "Gestión de Productos");
+
+        // Si es edición, pre-llenamos los campos ANTES de iniciar el controlador
+        if (productoEditar != null) {
+            gpView.txtCodigo.setText(productoEditar.getCodigo());
+            gpView.txtNombre.setText(productoEditar.getNombre());
+            gpView.txtPrecio.setText(String.valueOf(productoEditar.getPrecio()));
+            gpView.txtStock.setText(String.valueOf(productoEditar.getStock()));
+
+            // Bloqueamos el código porque es clave primaria en BD
+            gpView.txtCodigo.setEditable(false);
+
+            // Intentamos seleccionar el proveedor en el combo (esto se refinará en el controller)
+            // Nota: El controller GestionProductoController maneja la carga de proveedores al iniciar.
+        }
+
+        // Iniciamos el controlador de productos
+        new GestionProductoController(gpView);
+
+        // Al cerrar la ventana, recargamos el inventario visual (las tarjetas)
+        cargarInventario();
+    }
+
     private void cambiarTema() {
         try {
             if (FlatLaf.isLafDark()) {
@@ -95,15 +123,9 @@ public class MenuBodegueroController implements ActionListener {
             } else {
                 UIManager.setLookAndFeel(new FlatMacDarkLaf());
             }
-            // 1. Actualizar UI de Swing
             FlatLaf.updateUI();
-
-            // 2. IMPORTANTE: Actualizar colores manuales de la vista
             view.actualizarColores();
-
-            // 3. Recargar inventario para que las tarjetas tomen el nuevo color
             cargarInventario();
-
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -115,11 +137,7 @@ public class MenuBodegueroController implements ActionListener {
             try {
                 Producto p = productoLogic.buscarProducto(codigo.trim());
                 if (p != null) {
-                    GestionProductoView editView = new GestionProductoView(view, "Actualizar Producto");
-                    GestionProductoController ctrl = new GestionProductoController(editView);
-                    ctrl.cargarDatosProducto(p);
-                    ctrl.iniciar();
-                    cargarInventario();
+                    abrirGestionProductos(p);
                 } else {
                     JOptionPane.showMessageDialog(view, "Producto no encontrado.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -137,15 +155,18 @@ public class MenuBodegueroController implements ActionListener {
             for (Producto p : productos) {
                 Icon icono = cargarImagenProducto(p.getCodigo());
                 String nombreProv = "Desconocido";
-                Proveedor prov = proveedorLogic.buscarProveedor(p.getCodigoProveedor());
-                if (prov != null) nombreProv = prov.getRazonSocial();
 
+                // Usamos la lógica de proveedores actualizada (busca por código)
+                if (p.getCodigoProveedor() != null) {
+                    Proveedor prov = proveedorLogic.buscarProveedor(p.getCodigoProveedor());
+                    if (prov != null) {
+                        nombreProv = prov.getRazonSocial(); // Usamos razonSocial
+                    }
+                }
+
+                // Al hacer click en la tarjeta, abrimos la edición
                 view.agregarTarjetaProducto(p, nombreProv, icono, e -> {
-                    GestionProductoView editView = new GestionProductoView(view, "Editar Producto");
-                    GestionProductoController ctrl = new GestionProductoController(editView);
-                    ctrl.cargarDatosProducto(p);
-                    ctrl.iniciar();
-                    cargarInventario();
+                    abrirGestionProductos(p);
                 });
             }
             view.revalidate();
@@ -164,13 +185,16 @@ public class MenuBodegueroController implements ActionListener {
             return new ImageIcon(img);
         }
         try {
+            // Intento cargar desde recursos si existe
             java.net.URL imgUrl = getClass().getResource("/images/" + codigo + ".png");
             if (imgUrl != null) {
                 ImageIcon icon = new ImageIcon(imgUrl);
                 Image img = icon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
                 return new ImageIcon(img);
             }
-        } catch (Exception e) {}
-        return null;
+        } catch (Exception e) {
+            // Ignorar errores de imagen
+        }
+        return null; // La vista pondrá un icono por defecto
     }
 }
