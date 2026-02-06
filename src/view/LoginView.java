@@ -25,6 +25,16 @@ public class LoginView extends JFrame {
         setLocationRelativeTo(null);
         setResizable(false);
 
+        // --- ICONO DE LA APLICACIÓN ---
+        try {
+            URL iconUrl = getClass().getResource("/logo.png");
+            if (iconUrl != null) {
+                setIconImage(new ImageIcon(iconUrl).getImage());
+            }
+        } catch (Exception e) {
+            System.err.println("Error cargando icono de la app: " + e.getMessage());
+        }
+
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 40, 30, 40));

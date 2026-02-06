@@ -7,6 +7,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
 import java.awt.geom.RoundRectangle2D;
+import java.net.URL;
 
 public class MenuAdminView extends JFrame {
 
@@ -32,6 +33,16 @@ public class MenuAdminView extends JFrame {
         setSize(850, 650);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+
+        // --- ICONO DE LA APLICACIÓN ---
+        try {
+            URL iconUrl = getClass().getResource("/logo.png");
+            if (iconUrl != null) {
+                setIconImage(new ImageIcon(iconUrl).getImage());
+            }
+        } catch (Exception e) {
+            System.err.println("Error cargando icono de la app: " + e.getMessage());
+        }
 
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBorder(BorderFactory.createEmptyBorder(30, 30, 30, 30));
